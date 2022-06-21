@@ -1,7 +1,11 @@
 import path from "path";
-import { BrowserWindow, app, ipcMain, session } from "electron";
+import { app, screen, ipcMain, session } from "electron";
+import WindowsManager from "./windowsManager";
 
 const isDev = process.env.NODE_ENV === "development";
+
+// ウィンドウ管理
+const windowsManager = new WindowsManager(isDev);
 
 if (isDev) {
   require("electron-reload")(__dirname, {
@@ -14,42 +18,27 @@ if (isDev) {
   });
 }
 
-const createWindows = () => {
-  const backgroundWindow = new BrowserWindow({
-    type: "desktop",
-    frame: false,
-    transparent: true,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-    },
-  });
+app.whenReady().then(() => {
+  // 準備ができたら背景を表示
+  windowsManager.createWindow("background");
+});
 
-  const consoleWindow = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-    },
-  });
+app.on("activate", () => {
+  // ドッグアイコンをクリックしたら背景とコンソールを表示
+  windowsManager.createWindow("background");
+  windowsManager.createWindow("console");
+});
 
-  // ipcMain.on('update-title', (_e, arg) => {
-  //   backgroundWindow.setTitle(`Electron React TypeScript: ${arg}`);
-  // });
+// ディスプレイの追加，大きさ変更，削除されたら，背景のウィンドウサイズを画面に合わせる
+screen.on("display-added", () => {
+  windowsManager.fitBackgroundToScreen();
+});
+screen.on("display-metrics-changed", () => {
+  windowsManager.fitBackgroundToScreen();
+});
+screen.on("display-removed", () => {
+  windowsManager.fitBackgroundToScreen();
+});
 
-  if (isDev) {
-    // searchDevtools('REACT')
-    //   .then((devtools) => {
-    //     session.defaultSession.loadExtension(devtools, {
-    //       allowFileAccess: true,
-    //     });
-    //   })
-    //   .catch((err) => console.log(err));
-
-    backgroundWindow.webContents.openDevTools({ mode: "detach" });
-    consoleWindow.webContents.openDevTools({ mode: "detach" });
-  }
-
-  backgroundWindow.loadFile("dist/background/index.html");
-  consoleWindow.loadFile("dist/console/index.html");
-};
-
-app.whenReady().then(createWindows);
+// すべてのウィンドウが停止したらアプリを終了
 app.once("window-all-closed", () => app.quit());
