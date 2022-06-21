@@ -1,4 +1,5 @@
 {
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "breadcrumbs.enabled": false,
   "editor.fontSize": 14,
   "editor.minimap.enabled": false,
