@@ -1,0 +1,13 @@
+{
+  "breadcrumbs.enabled": false,
+  "editor.fontSize": 14,
+  "editor.minimap.enabled": false,
+  "editor.renderControlCharacters": true,
+  "editor.tabSize": 2,
+  "files.trimTrailingWhitespace": true,
+  "terminal.integrated.tabs.enabled": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "vim.useSystemClipboard": true,
+  "workbench.startupEditor": "newUntitledFile",
+  "editor.formatOnSave": true
+}
