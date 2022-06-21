@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-
-const { myAPI } = window;
+import React, { useState } from "react";
 
 export const App = () => {
   const [folderPath, setFolderPath] = useState();

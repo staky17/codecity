@@ -1,6 +1,5 @@
 import path from "path";
 import { app, screen, dialog, ipcMain } from "electron";
-const chokidar = require("chokidar");
 
 import WindowsManager from "./windowsManager";
 import DirectoryWatcher from "./directoryWatcher";
