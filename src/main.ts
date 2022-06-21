@@ -21,23 +21,23 @@ if (isDev) {
 app.whenReady().then(() => {
   // 準備ができたら背景を表示
   windowsManager.createWindow("background");
+
+  // ディスプレイの追加，大きさ変更，削除されたら，背景のウィンドウサイズを画面に合わせる
+  screen.on("display-added", () => {
+    windowsManager.fitBackgroundToScreen();
+  });
+  screen.on("display-metrics-changed", () => {
+    windowsManager.fitBackgroundToScreen();
+  });
+  screen.on("display-removed", () => {
+    windowsManager.fitBackgroundToScreen();
+  });
 });
 
 app.on("activate", () => {
   // ドッグアイコンをクリックしたら背景とコンソールを表示
   windowsManager.createWindow("background");
   windowsManager.createWindow("console");
-});
-
-// ディスプレイの追加，大きさ変更，削除されたら，背景のウィンドウサイズを画面に合わせる
-screen.on("display-added", () => {
-  windowsManager.fitBackgroundToScreen();
-});
-screen.on("display-metrics-changed", () => {
-  windowsManager.fitBackgroundToScreen();
-});
-screen.on("display-removed", () => {
-  windowsManager.fitBackgroundToScreen();
 });
 
 // すべてのウィンドウが停止したらアプリを終了
