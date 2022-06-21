@@ -37,7 +37,7 @@ class DirectoryWatcher {
     }
   }
 
-  pathString2Tree(paths, callBack: (tree) => void): void {
+  pathString2Tree(paths: string[], callBack: (tree) => void): void {
     var tree = [];
 
     //ループする！
