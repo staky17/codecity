@@ -1,5 +1,6 @@
 import path from "path";
-import { app, screen, ipcMain, session } from "electron";
+import { app, screen } from "electron";
+
 import WindowsManager from "./windowsManager";
 
 const isDev = process.env.NODE_ENV === "development";

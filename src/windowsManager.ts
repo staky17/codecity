@@ -1,4 +1,5 @@
-import { BrowserWindow, screen } from "electron";
+import { BrowserWindow, screen, dialog, ipcMain } from "electron";
+const chokidar = require("chokidar");
 import path from "path";
 
 class WindowsManager {
@@ -39,6 +40,39 @@ class WindowsManager {
           webPreferences: {
             preload: path.join(__dirname, "preload.js"),
           },
+        });
+
+        ipcMain.handle("open-dialog", async (_e, _arg) => {
+          return (
+            dialog
+              // フォルダ選択ダイアログを表示する
+              .showOpenDialog({
+                properties: ["openDirectory"],
+                title: "フォルダ選択",
+              })
+              .then((result) => {
+                // キャンセルボタンが押されたとき
+                if (result.canceled) return "";
+
+                const WATCHING_DIR = result.filePaths[0];
+
+                const watcher = chokidar.watch(WATCHING_DIR, {
+                  ignored: /[\/\\]\./,
+                  persistent: true,
+                  usePolling: true,
+                });
+
+                watcher.on("ready", async () => {
+                  console.log("ready watching...");
+                  watcher.on("add", (path: string) => {
+                    console.log(path + " added.");
+                  });
+                });
+
+                // 選択されたファイルの絶対パスを返す
+                return result.filePaths[0];
+              })
+          );
         });
 
         this.windows.console.setMenuBarVisibility(false);
