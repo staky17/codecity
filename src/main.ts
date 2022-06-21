@@ -7,7 +7,30 @@ const isDev = process.env.NODE_ENV === "development";
 
 // ウィンドウ管理
 const windowsManager = new WindowsManager(isDev);
-const directoryWatcher = new DirectoryWatcher();
+const directoryWatcher = new DirectoryWatcher({
+  notifyNewRepo: async () => {
+    // 新しいフォルダを監視し始めたことをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("reset");
+  },
+  notifyNewFile: async (path: string) => {
+    // 新しいファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("addFile", {
+      path: path,
+    });
+  },
+  notifyUpdateFile: async (path: string) => {
+    // 更新されたファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("updateFile", {
+      path: path,
+    });
+  },
+  notifyRemoveFile: async (path: string) => {
+    // 削除されたファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("removeFile", {
+      path: path,
+    });
+  },
+});
 
 if (isDev) {
   require("electron-reload")(__dirname, {
