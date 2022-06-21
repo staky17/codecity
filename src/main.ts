@@ -1,12 +1,14 @@
 import path from "path";
-import { app, screen } from "electron";
+import { app, screen, dialog, ipcMain } from "electron";
+const chokidar = require("chokidar");
 
 import WindowsManager from "./windowsManager";
-
+import DirectoryWatcher from "./directoryWatcher";
 const isDev = process.env.NODE_ENV === "development";
 
 // ウィンドウ管理
 const windowsManager = new WindowsManager(isDev);
+const directoryWatcher = new DirectoryWatcher();
 
 if (isDev) {
   require("electron-reload")(__dirname, {
@@ -32,6 +34,28 @@ app.whenReady().then(() => {
   });
   screen.on("display-removed", () => {
     windowsManager.fitBackgroundToScreen();
+  });
+  ipcMain.handle("open-dialog", async (_e, _arg) => {
+    if (typeof windowsManager.windows.console === "undefined") {
+      return;
+    }
+    return (
+      dialog
+        // フォルダ選択ダイアログを表示する
+        .showOpenDialog(windowsManager.windows.console, {
+          properties: ["openDirectory"],
+          title: "フォルダ選択",
+        })
+        .then((result) => {
+          // キャンセルボタンが押されたとき
+          if (result.canceled) return "";
+
+          directoryWatcher.watchPath(result.filePaths[0]);
+
+          // 選択されたファイルの絶対パスを返す
+          return result.filePaths[0];
+        })
+    );
   });
 });
 
