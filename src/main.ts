@@ -1,8 +1,12 @@
 import path from "path";
-import { BrowserWindow, app, ipcMain, session, dialog } from "electron";
-const chokidar = require("chokidar");
+import { app, screen } from "electron";
+
+import WindowsManager from "./windowsManager";
 
 const isDev = process.env.NODE_ENV === "development";
+
+// ウィンドウ管理
+const windowsManager = new WindowsManager(isDev);
 
 if (isDev) {
   require("electron-reload")(__dirname, {
@@ -15,75 +19,31 @@ if (isDev) {
   });
 }
 
-const createWindows = () => {
-  const backgroundWindow = new BrowserWindow({
-    type: "desktop",
-    frame: false,
-    transparent: true,
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-    },
+app.whenReady().then(() => {
+  // 準備ができたら背景を表示
+  windowsManager.createWindow("background");
+
+  // ディスプレイの追加，大きさ変更，削除されたら，背景のウィンドウサイズを画面に合わせる
+  screen.on("display-added", () => {
+    windowsManager.fitBackgroundToScreen();
   });
-
-  const consoleWindow = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-    },
+  screen.on("display-metrics-changed", () => {
+    windowsManager.fitBackgroundToScreen();
   });
-
-  ipcMain.handle("open-dialog", async (_e, _arg) => {
-    return (
-      dialog
-        // フォルダ選択ダイアログを表示する
-        .showOpenDialog(consoleWindow, {
-          properties: ["openDirectory"],
-          title: "フォルダ選択",
-        })
-        .then((result) => {
-          // キャンセルボタンが押されたとき
-          if (result.canceled) return "";
-
-          const WATCHING_DIR = result.filePaths[0];
-
-          const watcher = chokidar.watch(WATCHING_DIR, {
-            ignored: /[\/\\]\./,
-            persistent: true,
-            usePolling: true,
-          });
-
-          watcher.on("ready", async () => {
-            console.log("ready watching...");
-            watcher.on("add", (path: string) => {
-              console.log(path + " added.");
-            });
-          });
-
-          // 選択されたファイルの絶対パスを返す
-          return result.filePaths[0];
-        })
-    );
+  screen.on("display-removed", () => {
+    windowsManager.fitBackgroundToScreen();
   });
+});
 
-  // ipcMain.on('update-title', (_e, arg) => {
-  //   backgroundWindow.setTitle(`Electron React TypeScript: ${arg}`);
-  // });
+// ipcMain.on('update-title', (_e, arg) => {
+//   backgroundWindow.setTitle(`Electron React TypeScript: ${arg}`);
+// });
 
-  if (isDev) {
-    // searchDevtools('REACT')
-    //   .then((devtools) => {
-    //     session.defaultSession.loadExtension(devtools, {
-    //       allowFileAccess: true,
-    //     });
-    //   })
-    //   .catch((err) => console.log(err));
+app.on("activate", () => {
+  // ドッグアイコンをクリックしたら背景とコンソールを表示
+  windowsManager.createWindow("background");
+  windowsManager.createWindow("console");
+});
 
-    backgroundWindow.webContents.openDevTools({ mode: "detach" });
-    consoleWindow.webContents.openDevTools({ mode: "detach" });
-  }
-
-  backgroundWindow.loadFile("dist/background/index.html");
-  consoleWindow.loadFile("dist/console/index.html");
-};
-
-app.whenReady().then(createWindows);
+// すべてのウィンドウが停止したらアプリを終了
 app.once("window-all-closed", () => app.quit());
