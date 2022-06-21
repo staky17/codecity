@@ -11,20 +11,16 @@ export const App = () => {
     const height = 500;
     const renderer: any = new THREE.WebGLRenderer({
       canvas: document.querySelector("#myCanvas") as HTMLCanvasElement,
+      alpha: true,
     });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(width, height);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, width / height);
-    // camera.position.set(200, 0, +800);
     camera.position.set(500, 500, 0);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-    // 箱を作成
-    // const geometry = new THREE.BoxGeometry(400, 400, 400);
     const material = new THREE.MeshNormalMaterial();
-    // const box = new THREE.Mesh(geometry, material);
-    // scene.add(box);
 
     const buildings = [];
     for (let i = -5; i < 5; i++) {
@@ -44,14 +40,12 @@ export const App = () => {
     scene.add(materialGroup);
 
     tick();
-    // 毎フレーム時に実行されるループイベント
     function tick() {
-      materialGroup.rotation.y += 0.01;
-      // materialGroup.rotation.x -= 0.05;
+      // materialGroup.rotation.y += 0.01;
+      // materialGroup.rotation.x -= 0.01;
       // materialGroup.rotation.z -= 0.01;
 
       renderer.render(scene, camera);
-      // レンダリング
       requestAnimationFrame(tick);
     }
   };
