@@ -1,5 +1,5 @@
 import chokidar from "chokidar";
-const _ = require("lodash");
+import _ from "lodash";
 
 class DirectoryWatcher {
   private watcher?: chokidar.FSWatcher;
@@ -20,9 +20,7 @@ class DirectoryWatcher {
         .map(([path, basenames]) => basenames.map((name) => `${path}/${name}`))
         .flat();
 
-      this.pathString2Tree(formattedAllFiles, function (tree) {
-        console.log("tree: ", JSON.stringify(tree[0]));
-      });
+      this.pathString2Tree(formattedAllFiles);
 
       this.watcher?.on("add", (path: string) => {
         console.log(path + " added.");
@@ -37,7 +35,7 @@ class DirectoryWatcher {
     }
   }
 
-  pathString2Tree(paths: string[], callBack: (tree) => void): void {
+  pathString2Tree(paths: string[]): void {
     var tree = [];
 
     //ループする！
@@ -70,7 +68,7 @@ class DirectoryWatcher {
       });
     });
 
-    callBack(tree);
+    console.log(tree);
   }
 }
 
