@@ -35,10 +35,6 @@ app.whenReady().then(() => {
   });
 });
 
-// ipcMain.on('update-title', (_e, arg) => {
-//   backgroundWindow.setTitle(`Electron React TypeScript: ${arg}`);
-// });
-
 app.on("activate", () => {
   // ドッグアイコンをクリックしたら背景とコンソールを表示
   windowsManager.createWindow("background");
