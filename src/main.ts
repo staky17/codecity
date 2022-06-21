@@ -1,5 +1,6 @@
 import path from "path";
 import { BrowserWindow, app, ipcMain, session, dialog } from "electron";
+const chokidar = require("chokidar");
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -41,6 +42,21 @@ const createWindows = () => {
         .then((result) => {
           // キャンセルボタンが押されたとき
           if (result.canceled) return "";
+
+          const WATCHING_DIR = result.filePaths[0];
+
+          const watcher = chokidar.watch(WATCHING_DIR, {
+            ignored: /[\/\\]\./,
+            persistent: true,
+            usePolling: true,
+          });
+
+          watcher.on("ready", async () => {
+            console.log("ready watching...");
+            watcher.on("add", (path: string) => {
+              console.log(path + " added.");
+            });
+          });
 
           // 選択されたファイルの絶対パスを返す
           return result.filePaths[0];
