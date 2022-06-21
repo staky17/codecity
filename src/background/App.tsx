@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 
 const { myAPI } = window;
 
-import { Canvas } from "@react-three/fiber";
 import * as THREE from "three";
 
 export const App = () => {
@@ -58,22 +57,4 @@ export const App = () => {
       <canvas id="myCanvas" />
     </>
   );
-
-  // return <div ref={mountRef} />;
-  // return (
-  // <div className="container">
-  //   <Canvas>
-  //     <ambientLight intensity={0.1} />
-  //     <directionalLight color="white" position={[0, 0, 5]} />
-  //     <mesh>
-  //       <boxGeometry args={[5, 5, 5]} />
-  //       <meshStandardMaterial color="0x44c2b5" />
-  //     </mesh>
-  //     <mesh>
-  //       <boxGeometry args={[5, 5, 5]} />
-  //       <meshStandardMaterial />
-  //     </mesh>
-  //   </Canvas>
-  // </div>
-  // );
 };
