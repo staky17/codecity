@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-
-const { myAPI } = window;
-
 import * as THREE from "three";
 
 export const App = () => {
   const createBox = () => {
     const width = 500;
     const height = 500;
-    const renderer: any = new THREE.WebGLRenderer({
+    const renderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#myCanvas") as HTMLCanvasElement,
       alpha: true,
     });
