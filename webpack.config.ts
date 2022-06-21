@@ -1,6 +1,7 @@
 import { Configuration } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import path from 'path';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -50,19 +51,39 @@ const preload: Configuration = {
   },
 };
 
-const renderer: Configuration = {
+const backgroundRenderer: Configuration = {
   ...common,
   target: 'web',
   entry: {
-    app: './src/web/index.tsx',
+    app: './src/background/index.tsx',
+  },
+  output: {
+    path: path.join(__dirname, "/dist/background")
   },
   plugins: [
     new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({
-      template: './src/web/index.html',
+      template: './src/background/index.html',
     }),
   ],
 };
 
-const config = isDev ? renderer : [main, preload, renderer];
+const consoleRenderer: Configuration = {
+  ...common,
+  target: 'web',
+  entry: {
+    app: './src/console/index.tsx',
+  },
+  output: {
+    path: path.join(__dirname, "/dist/console")
+  },
+  plugins: [
+    new MiniCssExtractPlugin(),
+    new HtmlWebpackPlugin({
+      template: './src/console/index.html',
+    }),
+  ],
+};
+
+const config = isDev ? [backgroundRenderer, consoleRenderer] : [main, preload, backgroundRenderer, consoleRenderer];
 export default config;

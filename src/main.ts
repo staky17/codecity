@@ -1,5 +1,4 @@
 import path from 'path';
-import { searchDevtools } from 'electron-search-devtools';
 import { BrowserWindow, app, ipcMain, session } from 'electron';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -15,8 +14,8 @@ if (isDev) {
   });
 }
 
-const createWindow = () => {
-  const mainWindow = new BrowserWindow({
+const createWindows = () => {
+  const backgroundWindow = new BrowserWindow({
     type: "desktop",
     frame: false,
     transparent: true,
@@ -25,24 +24,32 @@ const createWindow = () => {
     },
   });
 
-  ipcMain.on('update-title', (_e, arg) => {
-    mainWindow.setTitle(`Electron React TypeScript: ${arg}`);
+  const consoleWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
   });
 
-  if (isDev) {
-    searchDevtools('REACT')
-      .then((devtools) => {
-        session.defaultSession.loadExtension(devtools, {
-          allowFileAccess: true,
-        });
-      })
-      .catch((err) => console.log(err));
+  // ipcMain.on('update-title', (_e, arg) => {
+  //   backgroundWindow.setTitle(`Electron React TypeScript: ${arg}`);
+  // });
 
-    mainWindow.webContents.openDevTools({ mode: 'detach' });
+  if (isDev) {
+    // searchDevtools('REACT')
+    //   .then((devtools) => {
+    //     session.defaultSession.loadExtension(devtools, {
+    //       allowFileAccess: true,
+    //     });
+    //   })
+    //   .catch((err) => console.log(err));
+
+    backgroundWindow.webContents.openDevTools({ mode: 'detach' });
+    consoleWindow.webContents.openDevTools({ mode: 'detach' });
   }
 
-  mainWindow.loadFile('dist/index.html');
+  backgroundWindow.loadFile('dist/background/index.html');
+  consoleWindow.loadFile('dist/console/index.html');
 };
 
-app.whenReady().then(createWindow);
+app.whenReady().then(createWindows);
 app.once('window-all-closed', () => app.quit());
