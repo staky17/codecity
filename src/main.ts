@@ -1,15 +1,15 @@
-import path from 'path';
-import { BrowserWindow, app, ipcMain, session } from 'electron';
+import path from "path";
+import { BrowserWindow, app, ipcMain, session } from "electron";
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 
 if (isDev) {
-  require('electron-reload')(__dirname, {
+  require("electron-reload")(__dirname, {
     electron: path.resolve(
       __dirname,
-      process.platform === 'win32'
-        ? '../node_modules/electron/dist/electron.exe'
-        : '../node_modules/.bin/electron'
+      process.platform === "win32"
+        ? "../node_modules/electron/dist/electron.exe"
+        : "../node_modules/.bin/electron"
     ),
   });
 }
@@ -20,13 +20,13 @@ const createWindows = () => {
     frame: false,
     transparent: true,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
   const consoleWindow = new BrowserWindow({
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, "preload.js"),
     },
   });
 
@@ -43,13 +43,13 @@ const createWindows = () => {
     //   })
     //   .catch((err) => console.log(err));
 
-    backgroundWindow.webContents.openDevTools({ mode: 'detach' });
-    consoleWindow.webContents.openDevTools({ mode: 'detach' });
+    backgroundWindow.webContents.openDevTools({ mode: "detach" });
+    consoleWindow.webContents.openDevTools({ mode: "detach" });
   }
 
-  backgroundWindow.loadFile('dist/background/index.html');
-  consoleWindow.loadFile('dist/console/index.html');
+  backgroundWindow.loadFile("dist/background/index.html");
+  consoleWindow.loadFile("dist/console/index.html");
 };
 
 app.whenReady().then(createWindows);
-app.once('window-all-closed', () => app.quit());
+app.once("window-all-closed", () => app.quit());
