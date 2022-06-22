@@ -36,3 +36,32 @@ export class Road extends THREE.Group {
     this.rotation.z = radian;
   }
 }
+
+export type Coordinate2D = {
+  x: number;
+  z: number;
+};
+
+/* createRoadFromStartToEnd
+// 任意の2点間に道を作る関数
+// @Usage
+// const r1 = createRoadFromStartToEnd(
+//   { x: 100, z: 100 },
+//   { x: 300, z: 300 },
+//   80
+// );
+// scene.add(r1);
+*/
+export function createRoadFromStartToEnd(
+  start: Coordinate2D,
+  end: Coordinate2D,
+  width: number
+) {
+  const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  const cos = (end.x - start.x) / length;
+  const rad = Math.acos(cos);
+
+  const road = new Road({ width: width, length: length, radian: rad });
+  road.position.set((start.x + end.x) / 2, 0, (start.z + end.z) / 2);
+  return road;
+}

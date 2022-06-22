@@ -3,9 +3,7 @@ import * as THREE from "three";
 import React, { useState, useEffect, useRef } from "react";
 
 import { BuildingWithStripes } from "./BuildingWithStripes";
-import { Road } from "./Road";
-
-// const { myAPI } = window;
+import { Road, createRoadFromStartToEnd } from "./Road";
 
 export const City = () => {
   const createBox = () => {
@@ -40,37 +38,6 @@ export const City = () => {
     const shadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
     shadowLight.position.set(-200, 300, 100);
     scene.add(shadowLight);
-
-    // const b1 = new BuildingWithStripes({
-    //   width: 100,
-    //   height: 210,
-    //   depth: 100,
-    //   stripeNum: 10,
-    // });
-    // const b2 = new BuildingWithStripes({ width: 100, height: 180, depth: 100 });
-    // const b3 = new BuildingWithStripes({ width: 100, height: 105, depth: 100 });
-    // const b4 = new BuildingWithStripes({ width: 100, height: 180, depth: 100 });
-    // b1.position.set(50, 0, 250);
-    // b2.position.set(50, 0, 50);
-    // b3.position.set(300, 0, 50);
-    // b4.position.set(300, 0, 250);
-    // scene.add(b1, b2, b3, b4);
-
-    // const roadx = new Road({ width: 90, length: 300, radian: Math.PI / 2 });
-    // roadx.position.set(200, 0, 150);
-    // scene.add(roadx);
-    // const roadz = new Road({ width: 100, length: 300 });
-    // roadz.position.set(175, 1, 150);
-    // scene.add(roadz);
-
-    // const crosscity1 = crossCity();
-    // const crosscity2 = crossCity();
-    // const crosscity3 = crossCity();
-    // const crosscity4 = crossCity();
-    // crosscity2.position.set(360, 0, 0);
-    // crosscity3.position.set(0, 0, 360);
-    // crosscity4.position.set(360, 0, 360);
-    // scene.add(crosscity1, crosscity2, crosscity3, crosscity4);
 
     const crosscities = [];
     for (let i = 0; i < 4; i++) {
