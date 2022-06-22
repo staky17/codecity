@@ -1,20 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
 
-const { myAPI } = window;
 
 export const App = () => {
-  const [folderPath, setFolderPath] = useState();
+  const [targetPath, setTargetPath] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const currentConfig = await window.myAPI.getCurrentConfig();
+      setTargetPath(currentConfig.targetPath);
+    })();
+  }, []);
 
   const onClickOpenFolderDialog = async () => {
-    const folderPathName = await window.myAPI.openDialog();
-    setFolderPath(folderPathName);
+    const targetPath = await window.myAPI.openDialog();
+    setTargetPath(targetPath);
   };
   return (
     <div className="container">
-      <button onClick={onClickOpenFolderDialog} id="button">
-        Open folder
-      </button>
-      <p id="text">{folderPath}</p>
+      <TextField
+        label="フォルダパス"
+        InputProps={{
+          value: targetPath,
+          readOnly: true,
+        }}
+        variant="standard"
+        onClick={onClickOpenFolderDialog}
+      />
+      <Button variant="text" onClick={onClickOpenFolderDialog}>
+        フォルダを開く
+      </Button>
     </div>
   );
 };
