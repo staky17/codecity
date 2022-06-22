@@ -6,21 +6,24 @@ export const App = () => {
   const [fileInfoDict, setFileInfoDict] = useState({} as FileInfoDict);
 
   useEffect(() => {
-    myAPI.on("reset", () => {
+    window.myAPI.on("reset", () => {
       console.log("街を初期化します");
       setFileInfoDict({});
     });
 
-    myAPI.on("addFile", (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
-      console.log("建物を追加します", fileInfo);
-      setFileInfoDict((prevFileInfoDict) =>
-        Object.assign({}, prevFileInfoDict, {
-          [fileInfo.path]: fileInfo,
-        } as FileInfoDict)
-      );
-    });
+    window.myAPI.on(
+      "addFile",
+      (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
+        console.log("建物を追加します", fileInfo);
+        setFileInfoDict((prevFileInfoDict) =>
+          Object.assign({}, prevFileInfoDict, {
+            [fileInfo.path]: fileInfo,
+          } as FileInfoDict)
+        );
+      }
+    );
 
-    myAPI.on(
+    window.myAPI.on(
       "updateFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を更新します", fileInfo);
@@ -32,7 +35,7 @@ export const App = () => {
       }
     );
 
-    myAPI.on(
+    window.myAPI.on(
       "removeFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を削除します", fileInfo);
@@ -53,6 +56,6 @@ export const App = () => {
   //    ))}
   //  </div>
   //);
-  
+
   return <City />;
 };
