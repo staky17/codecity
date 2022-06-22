@@ -57,9 +57,14 @@ app.whenReady().then(() => {
   screen.on("display-removed", () => {
     windowsManager.fitBackgroundToScreen();
   });
+  ipcMain.handle("get-current-config", (_e, _arg) => {
+    return {
+      targetPath: directoryWatcher.targetPath,
+    };
+  });
   ipcMain.handle("open-dialog", async (_e, _arg) => {
     if (typeof windowsManager.windows.console === "undefined") {
-      return;
+      return "";
     }
     return (
       dialog

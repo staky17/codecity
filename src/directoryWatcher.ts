@@ -1,13 +1,15 @@
 import chokidar from "chokidar";
 
 class DirectoryWatcher {
+  public targetPath: string;
   private watcher?: chokidar.FSWatcher;
-  private notifyNewRepo: () => Promise<any>;
-  private notifyNewFile: (path: string) => Promise<any>;
-  private notifyUpdateFile: (path: string) => Promise<any>;
-  private notifyRemoveFile: (path: string) => Promise<any>;
+  private notifyNewRepo: () => Promise<void>;
+  private notifyNewFile: (path: string) => Promise<void>;
+  private notifyUpdateFile: (path: string) => Promise<void>;
+  private notifyRemoveFile: (path: string) => Promise<void>;
 
   constructor(callbacks: Callbacks) {
+    this.targetPath = "";
     this.notifyNewRepo = callbacks.notifyNewRepo;
     this.notifyNewFile = callbacks.notifyNewFile;
     this.notifyUpdateFile = callbacks.notifyUpdateFile;
@@ -16,6 +18,9 @@ class DirectoryWatcher {
 
   watchPath(path: string) {
     this.unwatchPath();
+
+    this.targetPath = path;
+
     this.watcher = chokidar.watch(path, {
       ignored: /[\/\\]\./,
       persistent: true,
@@ -46,6 +51,7 @@ class DirectoryWatcher {
     if (typeof this.watcher !== "undefined") {
       this.watcher.close();
       this.watcher = undefined;
+      this.targetPath = "";
     }
   }
 
