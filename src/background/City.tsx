@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 // const { myAPI } = window;
 
-export const Town = () => {
+export const City = () => {
   const createBox = () => {
     const width = 1000;
     const height = 1000;

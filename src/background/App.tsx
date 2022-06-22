@@ -4,8 +4,8 @@ const { myAPI } = window;
 
 import * as THREE from "three";
 
-import { Town } from "./Town";
+import { City } from "./City";
 
 export const App = () => {
-  return <Town />;
+  return <City />;
 };
