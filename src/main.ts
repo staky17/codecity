@@ -1,6 +1,5 @@
 import path from "path";
 import { app, screen, dialog, ipcMain } from "electron";
-const chokidar = require("chokidar");
 
 import WindowsManager from "./windowsManager";
 import DirectoryWatcher from "./directoryWatcher";
@@ -8,7 +7,30 @@ const isDev = process.env.NODE_ENV === "development";
 
 // ウィンドウ管理
 const windowsManager = new WindowsManager(isDev);
-const directoryWatcher = new DirectoryWatcher();
+const directoryWatcher = new DirectoryWatcher({
+  notifyNewRepo: async () => {
+    // 新しいフォルダを監視し始めたことをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("reset");
+  },
+  notifyNewFile: async (path: string) => {
+    // 新しいファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("addFile", {
+      path: path,
+    });
+  },
+  notifyUpdateFile: async (path: string) => {
+    // 更新されたファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("updateFile", {
+      path: path,
+    });
+  },
+  notifyRemoveFile: async (path: string) => {
+    // 削除されたファイルをbackgroundに通知するコード
+    windowsManager.windows.background?.webContents.send("removeFile", {
+      path: path,
+    });
+  },
+});
 
 if (isDev) {
   require("electron-reload")(__dirname, {
@@ -35,9 +57,14 @@ app.whenReady().then(() => {
   screen.on("display-removed", () => {
     windowsManager.fitBackgroundToScreen();
   });
+  ipcMain.handle("get-current-config", (_e, _arg) => {
+    return {
+      targetPath: directoryWatcher.targetPath,
+    };
+  });
   ipcMain.handle("open-dialog", async (_e, _arg) => {
     if (typeof windowsManager.windows.console === "undefined") {
-      return;
+      return "";
     }
     return (
       dialog
