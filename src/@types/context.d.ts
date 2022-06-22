@@ -1,6 +1,8 @@
 export interface IElectronAPI {
   update: (count: number) => void;
-  openDialog: () => Promise<any>;
+  openDialog: () => Promise<string>;
+  getCurrentConfig: () => Promise<any>;
+  on: (channel: string, callback: any) => void;
 }
 
 declare global {
