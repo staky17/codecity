@@ -1,6 +1,11 @@
-import { colors } from "@mui/material";
-import _ from "lodash";
 import * as THREE from "three";
+
+type BaseRoadSettings = {
+  width: number;
+  length: number;
+  color: number;
+  opacity: number;
+};
 
 type RoadSettings = {
   width: number;
@@ -8,15 +13,54 @@ type RoadSettings = {
   radian?: number;
   color?: number;
   highlightColor?: number;
+  opacity?: number;
 };
 
+// No rotate Plane
+class BaseRoad extends THREE.Mesh {
+  constructor({ width, length, color, opacity }: BaseRoadSettings) {
+    const geometryBaseRoad = new THREE.PlaneGeometry(width, length);
+    const materialBaseRoad = new THREE.MeshLambertMaterial({
+      color: color,
+      transparent: true,
+      opacity: opacity,
+    });
+    super(geometryBaseRoad, materialBaseRoad);
+  }
+}
+
+// Rotation
 export class Road extends THREE.Group {
   constructor({
     width,
     length,
     radian = 0,
     color = 0xffffff,
+    opacity = 0.4,
+  }: // highlightColor = 0xffffff,
+  RoadSettings) {
+    super();
+    console.assert(
+      -Math.PI * 2 < radian && radian < Math.PI * 2,
+      "Use radian!"
+    );
+
+    const road = new BaseRoad({ width, length: length, color, opacity });
+
+    this.add(road);
+    this.rotation.x = -Math.PI / 2; // Don't Change
+    this.rotation.z = radian;
+  }
+}
+
+export class RoadWithCenterLine extends THREE.Group {
+  constructor({
+    width,
+    length,
+    radian = 0,
+    color = 0xffffff,
     highlightColor = 0xffffff,
+    opacity = 0.4,
   }: RoadSettings) {
     super();
     console.assert(
@@ -25,18 +69,18 @@ export class Road extends THREE.Group {
     );
 
     const geometryMainRoad = new THREE.PlaneGeometry(width, length);
-    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, length);
-
     const materialMainRoad = new THREE.MeshLambertMaterial({
       color: color,
       transparent: true,
-      opacity: 0.4,
+      opacity: opacity,
     });
+    const road = new THREE.Mesh(geometryMainRoad, materialMainRoad);
+
+    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, length);
     const materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
 
-    const road = new THREE.Mesh(geometryMainRoad, materialMainRoad);
     const centerline = new THREE.Mesh(geometryCenterLine, materialCenterLine);
     centerline.position.set(0, 0.1, 0);
 
@@ -46,13 +90,14 @@ export class Road extends THREE.Group {
   }
 }
 
-export class RoadWithDashedCenterline extends THREE.Group {
+export class RoadWithDashedCenterLine extends THREE.Group {
   constructor({
     width,
     length,
     radian = 0,
     color = 0xffffff,
     highlightColor = 0xffffff,
+    opacity = 0.4,
   }: RoadSettings) {
     super();
     console.assert(
@@ -61,19 +106,13 @@ export class RoadWithDashedCenterline extends THREE.Group {
     );
 
     const dashLength = 10;
-    const geometryMainRoad = new THREE.PlaneGeometry(width, length);
-    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, dashLength);
 
-    const materialMainRoad = new THREE.MeshLambertMaterial({
-      color: color,
-      transparent: true,
-      opacity: 0.4,
-    });
+    const road = new BaseRoad({ width, length, color, opacity });
+
+    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, dashLength);
     const materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
-
-    const road = new THREE.Mesh(geometryMainRoad, materialMainRoad);
 
     // lengthの半分
     //　 Dash長は固定値
@@ -93,9 +132,7 @@ export class RoadWithDashedCenterline extends THREE.Group {
     const dashGroup = new THREE.Group();
     dashGroup.add(...centerlineDashs);
     dashGroup.position.set(0, -length / 2, 0);
-
-    // const centerline = new THREE.Mesh(geometryCenterLine, materialCenterLine);
-    // centerline.position.set(0, 0.1, 0);
+    // dashGroup.position.set(0, 0, 0);
 
     this.add(road, dashGroup);
     this.rotation.x = -Math.PI / 2; // Don't Change
@@ -124,10 +161,8 @@ export function createRoadFromStartToEnd(
   width: number
 ) {
   const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
-  const cos = (end.x - start.x) / length;
-  const rad = Math.acos(cos);
-
-  const road = new RoadWithDashedCenterline({
+  const rad = Math.atan2(end.x - start.x, end.z - start.z);
+  const road = new Road({
     width: width,
     length: length,
     radian: rad,

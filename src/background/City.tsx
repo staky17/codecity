@@ -6,22 +6,28 @@ import { BuildingWithStripes } from "./BuildingWithStripes";
 import {
   Road,
   createRoadFromStartToEnd,
-  RoadWithDashedCenterline,
+  RoadWithDashedCenterLine,
 } from "./Road";
 
 export const City = () => {
   const createBox = () => {
-    const width = 2000;
-    const height = 2000;
+    const WindowWidth = 2000;
+    const WindowHeight = 2000;
     const renderer: any = new THREE.WebGLRenderer({
       canvas: document.querySelector("#cityCanvas") as HTMLCanvasElement,
       alpha: true,
       antialias: true,
     });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(width, height);
+    renderer.setSize(WindowWidth, WindowHeight);
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      WindowWidth / WindowHeight,
+      100,
+      10000
+    );
+
     // const camera = new THREE.OrthographicCamera(
     //   -width / 2,
     //   width / 2,
@@ -43,21 +49,28 @@ export const City = () => {
     shadowLight.position.set(-200, 300, 100);
     scene.add(shadowLight);
 
-    const crosscities = [];
-    for (let i = 0; i < 1; i++) {
-      for (let j = 0; j < 1; j++) {
-        const crosscity = crossCity();
-        crosscity.position.set(360 * i, 0, 360 * j);
-        crosscities.push(crosscity);
-      }
-    }
-    scene.add(...crosscities);
+    //
 
-    tick();
+    // const crosscities = bigCity(4, 4);
+    // scene.add(...crosscities);
+    const road = createRoadFromStartToEnd(
+      { x: 200, z: 500 },
+      { x: 300, z: 100 },
+      80
+    );
+    scene.add(road);
+    // const road2 = createRoadFromStartToEnd(
+    //   { x: 10, z: 10 },
+    //   { x: 25, z: 20 },
+    //   80
+    // );
+    // scene.add(road2);
+
     function tick() {
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
+    tick();
   };
 
   useEffect(() => {
@@ -81,17 +94,29 @@ function crossCity() {
   b3.position.set(300, 0, 50);
   b4.position.set(300, 0, 250);
 
-  const roadx = new RoadWithDashedCenterline({
+  const roadx = new RoadWithDashedCenterLine({
     width: 90,
     length: 360,
     radian: Math.PI / 2,
   });
   roadx.position.set(180, 0, 150);
-  const roadz = new Road({ width: 100, length: 360 });
+  const roadz = new RoadWithDashedCenterLine({ width: 100, length: 360 });
   roadz.position.set(175, 1, 180);
 
   const crosscity = new THREE.Group();
-  // crosscity.add(b1, b2, b3, b4, roadx, roadz);
+  crosscity.add(b1, b2, b3, b4, roadx, roadz);
   crosscity.add(roadx, roadz);
   return crosscity;
+}
+
+function bigCity(yoko: number, tate: number) {
+  const crosscities = [];
+  for (let i = 0; i < yoko; i++) {
+    for (let j = 0; j < tate; j++) {
+      const crosscity = crossCity();
+      crosscity.position.set(360 * i, 0, 360 * j);
+      crosscities.push(crosscity);
+    }
+  }
+  return crosscities;
 }
