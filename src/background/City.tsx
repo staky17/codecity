@@ -3,14 +3,18 @@ import * as THREE from "three";
 import React, { useState, useEffect, useRef } from "react";
 
 import { BuildingWithStripes } from "./BuildingWithStripes";
-import { Road, createRoadFromStartToEnd } from "./Road";
+import {
+  Road,
+  createRoadFromStartToEnd,
+  RoadWithDashedCenterline,
+} from "./Road";
 
 export const City = () => {
   const createBox = () => {
     const width = 2000;
     const height = 2000;
     const renderer: any = new THREE.WebGLRenderer({
-      canvas: document.querySelector("#myCanvas") as HTMLCanvasElement,
+      canvas: document.querySelector("#cityCanvas") as HTMLCanvasElement,
       alpha: true,
       antialias: true,
     });
@@ -40,8 +44,8 @@ export const City = () => {
     scene.add(shadowLight);
 
     const crosscities = [];
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 4; j++) {
+    for (let i = 0; i < 1; i++) {
+      for (let j = 0; j < 1; j++) {
         const crosscity = crossCity();
         crosscity.position.set(360 * i, 0, 360 * j);
         crosscities.push(crosscity);
@@ -59,7 +63,7 @@ export const City = () => {
   useEffect(() => {
     createBox();
   }, []);
-  return <canvas id="myCanvas" />;
+  return <canvas id="cityCanvas" />;
 };
 
 function crossCity() {
@@ -77,12 +81,17 @@ function crossCity() {
   b3.position.set(300, 0, 50);
   b4.position.set(300, 0, 250);
 
-  const roadx = new Road({ width: 90, length: 300, radian: Math.PI / 2 });
-  roadx.position.set(200, 0, 150);
-  const roadz = new Road({ width: 100, length: 300 });
-  roadz.position.set(175, 1, 150);
+  const roadx = new RoadWithDashedCenterline({
+    width: 90,
+    length: 360,
+    radian: Math.PI / 2,
+  });
+  roadx.position.set(180, 0, 150);
+  const roadz = new Road({ width: 100, length: 360 });
+  roadz.position.set(175, 1, 180);
 
   const crosscity = new THREE.Group();
-  crosscity.add(b1, b2, b3, b4, roadx, roadz);
+  // crosscity.add(b1, b2, b3, b4, roadx, roadz);
+  crosscity.add(roadx, roadz);
   return crosscity;
 }
