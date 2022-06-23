@@ -37,8 +37,7 @@ export class Road extends THREE.Group {
     radian = 0,
     color = 0x808080,
     opacity = 1,
-  }: // highlightColor = 0xffffff,
-  RoadSettings) {
+  }: RoadSettings) {
     super();
     console.assert(
       -Math.PI * 2 < radian && radian < Math.PI * 2,
@@ -160,6 +159,7 @@ export function createRoadFromStartToEnd(
   end: Coordinate2D,
   width: number,
   lineType: "NoLine" | "CenterLine" | "DashedCenterLine"
+  // priority が追加されるかも。
 ) {
   const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
   const rad = Math.atan2(end.x - start.x, end.z - start.z);

@@ -2,7 +2,7 @@ import * as THREE from "three";
 
 import React, { useState, useEffect, useRef } from "react";
 
-import { BuildingWithStripes } from "./BuildingWithStripes";
+import { BuildingWithStripes, BaseBuilding } from "./Building";
 import {
   Road,
   createRoadFromStartToEnd,
@@ -40,7 +40,7 @@ export const City = () => {
     const axes = new THREE.AxesHelper(1000);
     scene.add(axes);
 
-    camera.position.set(-400, 1000, -800);
+    camera.position.set(-400, 600, -1000);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     const light = new THREE.AmbientLight(0xffffff, 0.65);
@@ -54,29 +54,45 @@ export const City = () => {
     // const crosscities = bigCity(4, 4);
     // scene.add(...crosscities);
 
-    const road2 = createRoadFromStartToEnd(
-      { x: 0, z: 0 },
-      { x: 250, z: 200 },
-      30,
-      "NoLine"
-    );
-    scene.add(road2);
+    // const road2 = createRoadFromStartToEnd(
+    //   { x: 0, z: 0 },
+    //   { x: 250, z: 200 },
+    //   30,
+    //   "NoLine"
+    // );
+    // scene.add(road2);
 
-    const road3 = createRoadFromStartToEnd(
-      { x: 30, z: 800 },
-      { x: 20, z: 0 },
-      50,
-      "CenterLine"
-    );
-    scene.add(road3);
+    // const road3 = createRoadFromStartToEnd(
+    //   { x: 30, z: 800 },
+    //   { x: 20, z: 0 },
+    //   50,
+    //   "CenterLine"
+    // );
+    // scene.add(road3);
 
-    const road = createRoadFromStartToEnd(
-      { x: -200, z: 500 },
-      { x: 300, z: 100 },
-      80,
-      "DashedCenterLine"
-    );
-    scene.add(road);
+    // const road = createRoadFromStartToEnd(
+    //   { x: -200, z: 500 },
+    //   { x: 300, z: 100 },
+    //   80,
+    //   "DashedCenterLine"
+    // );
+    // scene.add(road);
+
+    // const basebuilding = new BaseBuilding({
+    //   width: 100,
+    //   depth: 100,
+    //   height: 100,
+    // });
+
+    // scene.add(basebuilding);
+
+    const stripedbuilding = new BuildingWithStripes({
+      width: 200,
+      depth: 200,
+      height: 140,
+    });
+
+    scene.add(stripedbuilding);
 
     function tick() {
       renderer.render(scene, camera);
