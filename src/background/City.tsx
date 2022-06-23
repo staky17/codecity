@@ -53,18 +53,30 @@ export const City = () => {
 
     // const crosscities = bigCity(4, 4);
     // scene.add(...crosscities);
+
+    const road2 = createRoadFromStartToEnd(
+      { x: 0, z: 0 },
+      { x: 250, z: 200 },
+      30,
+      "NoLine"
+    );
+    scene.add(road2);
+
+    const road3 = createRoadFromStartToEnd(
+      { x: 30, z: 800 },
+      { x: 20, z: 0 },
+      50,
+      "CenterLine"
+    );
+    scene.add(road3);
+
     const road = createRoadFromStartToEnd(
-      { x: 200, z: 500 },
+      { x: -200, z: 500 },
       { x: 300, z: 100 },
-      80
+      80,
+      "DashedCenterLine"
     );
     scene.add(road);
-    // const road2 = createRoadFromStartToEnd(
-    //   { x: 10, z: 10 },
-    //   { x: 25, z: 20 },
-    //   80
-    // );
-    // scene.add(road2);
 
     function tick() {
       renderer.render(scene, camera);

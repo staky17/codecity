@@ -35,8 +35,8 @@ export class Road extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0xffffff,
-    opacity = 0.4,
+    color = 0x808080,
+    opacity = 1,
   }: // highlightColor = 0xffffff,
   RoadSettings) {
     super();
@@ -58,9 +58,9 @@ export class RoadWithCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0xffffff,
+    color = 0x808080,
     highlightColor = 0xffffff,
-    opacity = 0.4,
+    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -82,7 +82,7 @@ export class RoadWithCenterLine extends THREE.Group {
     });
 
     const centerline = new THREE.Mesh(geometryCenterLine, materialCenterLine);
-    centerline.position.set(0, 0.1, 0);
+    centerline.position.set(0, 0, 0.1);
 
     this.add(road, centerline);
     this.rotation.x = -Math.PI / 2; // Don't Change
@@ -95,9 +95,9 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0xffffff,
+    color = 0x808080,
     highlightColor = 0xffffff,
-    opacity = 0.4,
+    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -131,7 +131,7 @@ export class RoadWithDashedCenterLine extends THREE.Group {
 
     const dashGroup = new THREE.Group();
     dashGroup.add(...centerlineDashs);
-    dashGroup.position.set(0, -length / 2, 0);
+    dashGroup.position.set(0, -length / 2, 0.1);
     // dashGroup.position.set(0, 0, 0);
 
     this.add(road, dashGroup);
@@ -158,15 +158,40 @@ export type Coordinate2D = {
 export function createRoadFromStartToEnd(
   start: Coordinate2D,
   end: Coordinate2D,
-  width: number
+  width: number,
+  lineType: "NoLine" | "CenterLine" | "DashedCenterLine"
 ) {
   const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
   const rad = Math.atan2(end.x - start.x, end.z - start.z);
-  const road = new Road({
-    width: width,
-    length: length,
-    radian: rad,
-  });
-  road.position.set((start.x + end.x) / 2, 0, (start.z + end.z) / 2);
-  return road;
+
+  let road: THREE.Group;
+
+  switch (lineType) {
+    case "NoLine":
+      road = new Road({
+        width: width,
+        length: length,
+        radian: rad,
+      });
+      road.position.set((start.x + end.x) / 2, 0, (start.z + end.z) / 2);
+      return road;
+
+    case "DashedCenterLine":
+      road = new RoadWithDashedCenterLine({
+        width: width,
+        length: length,
+        radian: rad,
+      });
+      road.position.set((start.x + end.x) / 2, 1, (start.z + end.z) / 2);
+      return road;
+
+    case "CenterLine":
+      road = new RoadWithCenterLine({
+        width: width,
+        length: length,
+        radian: rad,
+      });
+      road.position.set((start.x + end.x) / 2, 2, (start.z + end.z) / 2);
+      return road;
+  }
 }
