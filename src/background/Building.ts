@@ -14,7 +14,8 @@ export type BuildingWithStripesSettings = BaseBuildingSettings & {
 
 export type BuildingWithWindowsSettings = BaseBuildingSettings & {
   highlightColor?: number;
-  floorNum?: number;
+  verticalWindowNum?: number;
+  horizontalWindowNum?: number;
 };
 
 export class BaseBuilding extends THREE.Group {
@@ -81,25 +82,61 @@ export class BuildingWithStripes extends THREE.Group {
   }
 }
 
-// export class BuildingWithWindows extends THREE.Group {
-//   constructor({
-//     width,
-//     height,
-//     depth,
-//     floorNum = 6,
-//     bodyColor = 0x8a2be2,
-//     highlightColor = 0xdda0dd,
-//   }: BuildingWithWindowsSettings) {
-//     super();
-//     const body = new BaseBuilding({ width, height, depth, bodyColor });
+export class BuildingWithWindows extends THREE.Group {
+  constructor({
+    width,
+    height,
+    depth,
+    verticalWindowNum = 5,
+    horizontalWindowNum = 5,
+    bodyColor = 0x8a2be2,
+    highlightColor = 0xdda0dd,
+  }: BuildingWithWindowsSettings) {
+    super();
+    const body = new BaseBuilding({ width, height, depth, bodyColor });
 
-//     const windowWidth = 10;
-//     // const windowHeight =
+    const material_window = new THREE.MeshLambertMaterial({
+      color: highlightColor,
+      transparent: false,
+    });
 
-//     const material_window = new THREE.MeshLambertMaterial({
-//       color: highlightColor,
-//     });
-//     const geometry_window = new THREE.PlaneGeometry(windowWidth, length);
-//     const window = new THREE.Mesh(geometry_window, material_window);
-//   }
-// }
+    const windowLength_h = height / (2 * verticalWindowNum + 1);
+    const windowLength_d = depth / (2 * horizontalWindowNum + 1);
+    const windowLength_w = width / (2 * horizontalWindowNum + 1);
+    const geometry_window_x = new THREE.BoxGeometry(
+      width + 3,
+      windowLength_h,
+      windowLength_d
+    );
+    const geometry_window_z = new THREE.BoxGeometry(
+      windowLength_w,
+      windowLength_h,
+      depth + 3
+    );
+
+    const windows = [];
+    for (let i = 0; i < verticalWindowNum; i++) {
+      for (let k = 0; k < horizontalWindowNum; k++) {
+        const window_x = new THREE.Mesh(geometry_window_x, material_window);
+        const window_z = new THREE.Mesh(geometry_window_z, material_window);
+        window_z.position.set(
+          windowLength_w * (2 * k + 3 / 2) - width / 2,
+          windowLength_h * (2 * i + 3 / 2),
+          -1
+        );
+
+        window_x.position.set(
+          -1,
+          windowLength_h * (2 * i + 3 / 2),
+          windowLength_d * (2 * k + 3 / 2) - depth / 2
+        );
+        windows.push(window_x, window_z);
+        // windows.push(window_x);
+      }
+    }
+
+    // this.add(body, window_x, window_z);
+    this.add(body, ...windows);
+    // this.add(...windows);
+  }
+}
