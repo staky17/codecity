@@ -3,6 +3,7 @@ import { app, screen, dialog, ipcMain } from "electron";
 
 import WindowsManager from "./windowsManager";
 import DirectoryWatcher from "./directoryWatcher";
+import { getFileInfo } from "./fileInfoAnalyzer";
 const isDev = process.env.NODE_ENV === "development";
 
 // ウィンドウ管理
@@ -14,19 +15,25 @@ const directoryWatcher = new DirectoryWatcher({
   },
   notifyNewFile: async (path: string) => {
     // 新しいファイルをbackgroundに通知するコード
-    windowsManager.windows.background?.webContents.send("addFile", {
-      path: path,
-    });
+    windowsManager.windows.background?.webContents.send(
+      "addFile",
+      await getFileInfo(path)
+    );
   },
   notifyUpdateFile: async (path: string) => {
     // 更新されたファイルをbackgroundに通知するコード
-    windowsManager.windows.background?.webContents.send("updateFile", {
-      path: path,
-    });
+    windowsManager.windows.background?.webContents.send(
+      "updateFile",
+      await getFileInfo(path)
+    );
   },
   notifyRemoveFile: async (path: string) => {
     // 削除されたファイルをbackgroundに通知するコード
     windowsManager.windows.background?.webContents.send("removeFile", {
+      mime: null,
+      charset: null,
+      size: null,
+      lineCount: null,
       path: path,
     });
   },
