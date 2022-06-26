@@ -3,7 +3,7 @@ import chokidar from "chokidar";
 class DirectoryWatcher {
   public targetPath: string;
   private watcher?: chokidar.FSWatcher;
-  private notifyNewRepo: () => Promise<void>;
+  private notifyNewRepo: (path: string) => Promise<void>;
   private notifyNewFile: (path: string) => Promise<void>;
   private notifyUpdateFile: (path: string) => Promise<void>;
   private notifyRemoveFile: (path: string) => Promise<void>;
@@ -32,7 +32,7 @@ class DirectoryWatcher {
 
     this.watcher.on("ready", async () => {
       // 新しくフォルダを監視することを通知する
-      await this.notifyNewRepo();
+      await this.notifyNewRepo(path);
       // すでにあるファイルを通知する
       this.notifyExistingFiles();
 

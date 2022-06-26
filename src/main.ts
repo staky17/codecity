@@ -9,9 +9,9 @@ const isDev = process.env.NODE_ENV === "development";
 // ウィンドウ管理
 const windowsManager = new WindowsManager(isDev);
 const directoryWatcher = new DirectoryWatcher({
-  notifyNewRepo: async () => {
+  notifyNewRepo: async (path: string) => {
     // 新しいフォルダを監視し始めたことをbackgroundに通知するコード
-    windowsManager.windows.background?.webContents.send("reset");
+    windowsManager.windows.background?.webContents.send("reset", path);
   },
   notifyNewFile: async (path: string) => {
     // 新しいファイルをbackgroundに通知するコード
