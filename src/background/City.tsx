@@ -46,9 +46,9 @@ export const City = () => {
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     const light = new THREE.AmbientLight(0xffffff, 0.65);
     scene.add(light);
-    const shadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    shadowLight.position.set(-200, 300, 100);
-    scene.add(shadowLight);
+    // const shadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    // shadowLight.position.set(-200, 300, 100);
+    // scene.add(shadowLight);
     const shadowLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
     shadowLight2.position.set(200, 300, 100);
     scene.add(shadowLight2);

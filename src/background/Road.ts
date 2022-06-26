@@ -3,17 +3,13 @@ import * as THREE from "three";
 type BaseRoadSettings = {
   width: number;
   length: number;
-  color: number;
-  opacity: number;
+  color?: number;
+  opacity?: number;
 };
 
-type RoadSettings = {
-  width: number;
-  length: number;
+type RoadSettings = BaseRoadSettings & {
   radian?: number;
-  color?: number;
   highlightColor?: number;
-  opacity?: number;
 };
 
 // No rotate Plane
@@ -115,7 +111,6 @@ export class RoadWithDashedCenterLine extends THREE.Group {
 
     // lengthの半分
     //　 Dash長は固定値
-
     const centerlineDashs = [];
     for (let i = 0; i < Math.floor(length / dashLength) - 1; i++) {
       if (i % 2 === 0) {
@@ -131,7 +126,6 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     const dashGroup = new THREE.Group();
     dashGroup.add(...centerlineDashs);
     dashGroup.position.set(0, -length / 2, 0.1);
-    // dashGroup.position.set(0, 0, 0);
 
     this.add(road, dashGroup);
     this.rotation.x = -Math.PI / 2; // Don't Change
