@@ -61,9 +61,11 @@ export class District extends MapObject {
 // 建物クラス
 export class Building extends MapObject {
   public height: number;
+  public active: boolean; // 追加した時点では表示しない．追加された後，建物同士の位置が調整されて，この建物の位置が確定したらactivateされて表示する．
   constructor(name: string, vertices: Array<Vertex2d>, height: number) {
     super(name, vertices);
     this.height = height;
+    this.active = false;
   }
 }
 

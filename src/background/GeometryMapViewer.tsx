@@ -6,11 +6,11 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
+// 頂点集合からパスを生成する
 const viewPath = (
   context: CanvasRenderingContext2D,
   vertices: Array<Vertex2d>
 ) => {
-  // 建物を二次元マップに描写する
   context.beginPath();
   let lastVertex = vertices[vertices.length - 1];
   context.moveTo(lastVertex.x * 20 + 250, lastVertex.z * 20 + 250);
@@ -34,6 +34,14 @@ export default (props: Props) => {
       context === null
     )
       return;
+
+    if (canvasRef.current !== null)
+      context.clearRect(
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height
+      );
 
     // 地区と建物を順に見ていく
     // nodesには，見るべき地区と建物が追加されていきます．キューになっている．
@@ -60,9 +68,15 @@ export default (props: Props) => {
         // 建物ならば
         let building: Building = node;
         // 建物を二次元マップに描写する
-        context.fillStyle = "blue";
-        viewPath(context, building.vertices);
-        context.fill();
+        if (building.active === true) {
+          context.fillStyle = "#0000cd";
+          viewPath(context, building.vertices);
+          context.fill();
+        } else {
+          context.fillStyle = "#0000cd10";
+          viewPath(context, building.vertices);
+          context.fill();
+        }
       }
     }
   };
