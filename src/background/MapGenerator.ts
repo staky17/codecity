@@ -197,6 +197,17 @@ export class District extends MapObject {
     );
   }
 
+  getCenter(children?: Array<District | Building>): Vector2d {
+    children = children || this.getChildrenAsList();
+
+    let center = new Vector2d(0, 0);
+    for (let child of children) {
+      center = center.add(child.base); // center += child.base
+    }
+    center = center.times(1 / children.length); // center /= childDistrict.length
+    return center;
+  }
+
   optimize(): void {
     const children = this.getChildrenAsList();
 
@@ -204,7 +215,7 @@ export class District extends MapObject {
     console.log("OPTIMIZE in " + this.name);
 
     let optimized = true;
-    for (let i = 0; i < 100 && optimized; i++) {
+    for (let _ = 0; _ < 100 && optimized; _++) {
       // 力を初期化する
       for (let child of children) child.force = new Vector2d(0, 0);
 
@@ -222,12 +233,7 @@ export class District extends MapObject {
     }
 
     // 中心にする
-    let center = new Vector2d(0, 0);
-    for (let child of children) {
-      center = center.add(child.base); // center += child.base
-    }
-    center = center.times(1 / children.length); // center /= childDistrict.length
-
+    let center = this.getCenter(children);
     for (let child of children) {
       child.base = child.base.sub(center);
     }

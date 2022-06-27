@@ -13,9 +13,9 @@ const viewPath = (
 ) => {
   context.beginPath();
   let lastVertex = vertices[vertices.length - 1];
-  context.moveTo(lastVertex.x * 50 + 250, lastVertex.z * 50 + 250);
+  context.moveTo(lastVertex.x * 30 + 250, lastVertex.z * 30 + 250);
   for (let vertex of vertices) {
-    context.lineTo(vertex.x * 50 + 250, vertex.z * 50 + 250);
+    context.lineTo(vertex.x * 30 + 250, vertex.z * 30 + 250);
   }
   context.closePath();
 };
@@ -80,8 +80,8 @@ export default (props: Props) => {
         context.fillStyle = "#ff0000c0";
         context.fillText(
           district.name,
-          district.base.add(absPosition).x * 50 + 250 - textWidth / 2,
-          district.base.add(absPosition).z * 50 + 250
+          district.base.add(absPosition).x * 30 + 250 - textWidth / 2,
+          district.base.add(absPosition).z * 30 + 250
         );
         // *** ここまで地区に対する描画処理 ***
 
@@ -109,8 +109,8 @@ export default (props: Props) => {
         context.fillStyle = "#0000ffc0";
         context.fillText(
           building.name,
-          building.base.add(absPosition).x * 50 + 250 - textWidth / 2,
-          building.base.add(absPosition).z * 50 + 250
+          building.base.add(absPosition).x * 30 + 250 - textWidth / 2,
+          building.base.add(absPosition).z * 30 + 250
         );
 
         // *** ここまで建物に対する描画処理 ***
