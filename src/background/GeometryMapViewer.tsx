@@ -35,6 +35,7 @@ export default (props: Props) => {
     )
       return;
 
+    // 描画する前にcanvasを綺麗にする
     if (canvasRef.current !== null)
       context.clearRect(
         0,
@@ -51,23 +52,25 @@ export default (props: Props) => {
     let node: District | Building;
     let absPosition: Vector2d;
 
+    // フォントを表示するための準備(three.jsならいらない)
     context.font = "12px serif";
-    context.fillStyle = "#000000c0";
 
     while (nodes.length > 0) {
-      node = nodes.shift()!;
+      node = nodes.shift()!; // ノード(建物または地区)を一つ取り出す
       absPosition = absPositions.shift()!; // 親の絶対座標が獲得できる
 
-      // 親に対しての相対位置なのを，絶対座標に置き換える．
+      // 親に対しての相対位置なのを，絶対座標に置き換える．addなのはVector2dクラスを自前で作っているから．
+      // javascriptにはoverride機能がないので，メソッドとしてベクトル演算できるようにしてある．
       let absVertices = node.vertices.map((vertex) => {
-        return vertex.add(node.base).add(absPosition); // vertex + absPosition
+        return vertex.add(node.base).add(absPosition); // vertex + node.base + absPosition
       });
 
       if (node instanceof District) {
         // 地区ならば
         let district: District = node;
 
-        // 地区を二次元マップに描写する
+        // *** 3Dで表示する場合はここから地区に対する描画処理を書く ***
+        // 地区を二次元マップに描写する(absVerticesが描画する絶対座標．[Vector2d(x, z), Vector2d(x, z), ...])という形で格納されている．
         context.strokeStyle = "#ff000080";
         viewPath(context, absVertices);
         context.stroke();
@@ -80,12 +83,13 @@ export default (props: Props) => {
           district.base.add(absPosition).x * 50 + 250 - textWidth / 2,
           district.base.add(absPosition).z * 50 + 250
         );
+        // *** ここまで地区に対する描画処理 ***
 
-        // 地区なら子供がいるはずなので，その子供をnodesに追加．
+        // 地区なら子供（地区または建物）がいるはずなので，その子供をnodesに追加．
         nodes = nodes.concat(
           Object.keys(district.children).map((key) => district.children[key])
         );
-
+        // 相対座標を絶対座標に直すためにabsPositionを計算してabsPositionnsに追加．
         absPositions = absPositions.concat(
           Object.keys(district.children).map((_) => {
             return district.base.add(absPosition);
@@ -94,6 +98,7 @@ export default (props: Props) => {
       } else {
         // 建物ならば
         let building: Building = node;
+        // *** ここから建物に対する描画処理 ***
         // 建物を二次元マップに描写する
         context.fillStyle = "#0000cd4f";
         viewPath(context, absVertices);
@@ -107,6 +112,8 @@ export default (props: Props) => {
           building.base.add(absPosition).x * 50 + 250 - textWidth / 2,
           building.base.add(absPosition).z * 50 + 250
         );
+
+        // *** ここまで建物に対する描画処理 ***
       }
     }
   };
