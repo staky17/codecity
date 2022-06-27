@@ -61,7 +61,13 @@ export const City = () => {
     );
     scene.add(building);
 
-    const signBoard = new SignBoard("sampleFile");
+    const signBoard = new SignBoard({
+      filename: "sampleFileName",
+      width: 10,
+      height: 7,
+      depth: 2,
+    });
+    // signBoard.position.set(100, 400, 100);
     scene.add(signBoard);
 
     function tick() {
