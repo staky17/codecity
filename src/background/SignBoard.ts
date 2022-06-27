@@ -1,5 +1,15 @@
 import * as THREE from "three";
 
+export type SignBoardType = {
+  filename: string;
+  width: number;
+  height: number;
+  depth: number;
+  XPosition: number;
+  YPosition: number;
+  ZPosition: number;
+};
+
 // Under Construction
 export class SignBoard extends THREE.Group {
   constructor({
@@ -10,15 +20,7 @@ export class SignBoard extends THREE.Group {
     XPosition,
     YPosition,
     ZPosition,
-  }: {
-    filename: string;
-    width: number;
-    height: number;
-    depth: number;
-    XPosition: number;
-    YPosition: number;
-    ZPosition: number;
-  }) {
+  }: SignBoardType) {
     super();
 
     // 背景のGeometry
