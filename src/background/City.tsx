@@ -63,11 +63,13 @@ export const City = () => {
 
     const signBoard = new SignBoard({
       filename: "sampleFileName",
-      width: 10,
-      height: 7,
-      depth: 2,
+      width: 200,
+      height: 30,
+      depth: 8,
+      XPosition: 50,
+      YPosition: 400,
+      ZPosition: 100,
     });
-    // signBoard.position.set(100, 400, 100);
     scene.add(signBoard);
 
     function tick() {
