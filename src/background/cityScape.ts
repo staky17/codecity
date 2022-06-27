@@ -2,7 +2,7 @@ import THREE from "three";
 import { BuildingWithStripes } from "./Building";
 import { RoadWithDashedCenterLine } from "./Road";
 
-function crossCity() {
+export function crossCity() {
   const b1 = new BuildingWithStripes({
     width: 100,
     height: 210,
@@ -28,11 +28,10 @@ function crossCity() {
 
   const crosscity = new THREE.Group();
   crosscity.add(b1, b2, b3, b4, roadx, roadz);
-  crosscity.add(roadx, roadz);
   return crosscity;
 }
 
-function bigCity(yoko: number, tate: number) {
+export function bigCity(yoko: number, tate: number) {
   const crosscities = [];
   for (let i = 0; i < yoko; i++) {
     for (let j = 0; j < tate; j++) {

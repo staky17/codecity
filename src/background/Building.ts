@@ -182,7 +182,6 @@ function calculateWidthDepthFrom4Coordinate(
 
   let width = calcLength(arrx);
   let depth = calcLength(arrz);
-  console.log(width, depth);
 
   return { width, depth };
 }

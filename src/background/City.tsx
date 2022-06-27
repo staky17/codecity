@@ -2,16 +2,7 @@ import * as THREE from "three";
 
 import React, { useState, useEffect, useRef } from "react";
 
-import {
-  BuildingWithStripes,
-  BaseBuilding,
-  BuildingWithWindows,
-} from "./Building";
-import {
-  Road,
-  createRoadFromStartToEnd,
-  RoadWithDashedCenterLine,
-} from "./Road";
+import { bigCity } from "./cityScape";
 
 export const City = () => {
   const createBox = () => {
@@ -52,6 +43,9 @@ export const City = () => {
     const shadowLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
     shadowLight2.position.set(200, 300, 100);
     scene.add(shadowLight2);
+
+    const bigcity = bigCity(1, 1);
+    scene.add(...bigcity);
 
     function tick() {
       renderer.render(scene, camera);
