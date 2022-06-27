@@ -63,6 +63,7 @@ export const City = () => {
 
     const signBoard = new SignBoard({
       filename: "sampleFileName",
+      signBoardColor: "#bbbb",
       width: 200,
       height: 30,
       depth: 8,

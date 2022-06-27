@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 export type SignBoardType = {
   filename: string;
+  signBoardColor: string;
   width: number;
   height: number;
   depth: number;
@@ -14,6 +15,7 @@ export type SignBoardType = {
 export class SignBoard extends THREE.Group {
   constructor({
     filename,
+    signBoardColor = "#ffffff",
     width,
     height,
     depth,
@@ -34,6 +36,7 @@ export class SignBoard extends THREE.Group {
       canvasWidth,
       canvasHeight,
       filename,
+      signBoardColor,
       40
     );
     if (canvasForTexture !== undefined) {
@@ -71,6 +74,7 @@ const createCanvasForTexture = (
   canvasWidth: number,
   canvasHeight: number,
   text: string,
+  signBoardColor: string,
   fontSize: number
 ) => {
   // 貼り付けるcanvasを作成。
@@ -82,9 +86,10 @@ const createCanvasForTexture = (
 
   ctx.canvas.width = canvasWidth;
   ctx.canvas.height = canvasHeight;
-  // 白背景を描く
-  ctx.fillStyle = "#ffffff";
+  // 看板の背景の設定
+  ctx.fillStyle = signBoardColor;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  // 看板テキストの設定
   ctx.fillStyle = "black";
   ctx.font = `${fontSize}px serif`;
   ctx.fillText(
