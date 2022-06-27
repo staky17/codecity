@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 
 import { bigCity } from "./cityScape";
 import { createBuildingFrom4Coordinate } from "./Building";
+import { SignBoard } from "./SignBoard";
 
 export const City = () => {
   const createBox = () => {
@@ -34,7 +35,7 @@ export const City = () => {
 
     const axes = new THREE.AxesHelper(1000);
     scene.add(axes);
-    camera.position.set(200, 1000, -800);
+    camera.position.set(-400, 1000, -800);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     const light = new THREE.AmbientLight(0xffffff, 0.65);
     scene.add(light);
@@ -59,6 +60,9 @@ export const City = () => {
       "Windows"
     );
     scene.add(building);
+
+    const signBoard = new SignBoard("sampleFile");
+    scene.add(signBoard);
 
     function tick() {
       renderer.render(scene, camera);

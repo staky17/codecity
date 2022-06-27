@@ -4,6 +4,7 @@
     "module": "ES2020",
     "esModuleInterop": true,
     "moduleResolution": "Node",
+    "resolveJsonModule": true,
     "lib": ["DOM", "ES2020"],
     "jsx": "react",
     "strict": true
