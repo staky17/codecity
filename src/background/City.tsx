@@ -1,8 +1,9 @@
 import * as THREE from "three";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 
 import { bigCity } from "./cityScape";
+import { createBuildingFrom4Coordinate } from "./Building";
 
 export const City = () => {
   const createBox = () => {
@@ -33,19 +34,31 @@ export const City = () => {
 
     const axes = new THREE.AxesHelper(1000);
     scene.add(axes);
-    camera.position.set(-800, 600, -1000);
+    camera.position.set(200, 1000, -800);
     camera.lookAt(new THREE.Vector3(0, 0, 0));
     const light = new THREE.AmbientLight(0xffffff, 0.65);
     scene.add(light);
-    // const shadowLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    // shadowLight.position.set(-200, 300, 100);
-    // scene.add(shadowLight);
+    const shadowLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    shadowLight.position.set(-300, 300, 100);
+    scene.add(shadowLight);
     const shadowLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
     shadowLight2.position.set(200, 300, 100);
     scene.add(shadowLight2);
 
-    const bigcity = bigCity(1, 1);
-    scene.add(...bigcity);
+    // const bigcity = bigCity(4, 4);
+    // scene.add(bigcity);
+
+    const building = createBuildingFrom4Coordinate(
+      [
+        { x: 100, z: 700 },
+        { x: 200, z: 700 },
+        { x: 200, z: 300 },
+        { x: 100, z: 300 },
+      ],
+      300,
+      "Windows"
+    );
+    scene.add(building);
 
     function tick() {
       renderer.render(scene, camera);

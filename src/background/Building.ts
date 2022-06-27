@@ -141,7 +141,8 @@ export class BuildingWithWindows extends THREE.Group {
 }
 
 /*
-calculateWidthDepthFrom4CoordinateとcalculateCenterPositionFrom4Coordinateのヘルパー関数
+calculateWidthDepthFrom4Coordinate と
+calculateCenterPositionFrom4Coordinateのヘルパー関数
  */
 function sortCoordinateXZValue(
   coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
@@ -209,5 +210,42 @@ function calculateCenterPositionFrom4Coordinate(
   const calcCenterPosition = (arr: number[]) => {
     return arr.reduce((s, e) => s + e, 0) / 4;
   };
+
   return { x: calcCenterPosition(arrx), z: calcCenterPosition(arrz) };
+}
+
+export function createBuildingFrom4Coordinate(
+  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D],
+  height: number,
+  buildingType: "Stripe" | "Windows",
+  bodyColor?: number,
+  highlightColor?: number
+) {
+  const { x, z } = calculateCenterPositionFrom4Coordinate(coordList);
+  const { width, depth } = calculateWidthDepthFrom4Coordinate(coordList);
+  const baseBuildingSettings: BaseBuildingSettings = {
+    width,
+    depth,
+    height,
+  };
+  let building: THREE.Group;
+  switch (buildingType) {
+    case "Stripe":
+      building = new BuildingWithStripes({
+        ...baseBuildingSettings,
+        bodyColor,
+        highlightColor,
+      });
+      building.position.set(x, 0, z);
+      return building;
+
+    case "Windows":
+      building = new BuildingWithWindows({
+        ...baseBuildingSettings,
+        bodyColor,
+        highlightColor,
+      });
+      building.position.set(x, 0, z);
+      return building;
+  }
 }
