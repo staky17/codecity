@@ -53,19 +53,22 @@ function argmin(a: Array<number>, start: number, end: number) {
   return index;
 }
 
-// 点vertex1に対して，vertex2とvertex3を結ぶ千文が時計回り(1)か半時計回り(-1)か同一直線(0)か判定する
-function clockwise(
+// 直線(vector1とvector2を通る)と線分(vector3とvector4を端点とする)が交差しているか判定する．
+function isCrossingSegmentAndLine(
   vector1: Vector2d,
   vector2: Vector2d,
-  vector3: Vector2d
-): number {
-  let d2 = vector2.sub(vector1);
-  let d3 = vector3.sub(vector1);
-  if (d2.x * d3.z < d3.x * d2.z) return 1;
-  else if (d2.x * d3.z > d3.x * d2.z) return -1;
-  return 0;
+  vector3: Vector2d,
+  vector4: Vector2d
+) {
+  return (
+    ((vector1.x - vector2.x) * (vector3.z - vector1.z) +
+      (vector1.z - vector2.z) * (vector1.x - vector3.x)) *
+      ((vector1.x - vector2.x) * (vector4.z - vector1.z) +
+        (vector1.z - vector2.z) * (vector1.x - vector4.x)) <
+    0
+  );
 }
-
+// 線分(vector1とvector2を端点とする)と線分(vector3とvector4を端点とする)が交差しているか判定する．
 function isCrossingSegment(
   vector1: Vector2d,
   vector2: Vector2d,
@@ -73,13 +76,77 @@ function isCrossingSegment(
   vector4: Vector2d
 ) {
   return (
-    clockwise(vector1, vector3, vector4) *
-      clockwise(vector2, vector3, vector4) <
-      0 &&
-    clockwise(vector3, vector1, vector2) *
-      clockwise(vector4, vector1, vector2) <
-      0
+    isCrossingSegmentAndLine(vector1, vector2, vector3, vector4) &&
+    isCrossingSegmentAndLine(vector3, vector4, vector1, vector2)
   );
+}
+
+// 与えられた領域vectorsの周が線分(vector1とvector2を端点とする)と何回重なるか調べる．
+function crossingSegmentCount(
+  vectors: Array<Vector2d>,
+  vector1: Vector2d,
+  vector2: Vector2d
+): number {
+  let count = 0;
+  for (let i = 0; i < vectors.length; i++)
+    if (
+      isCrossingSegment(
+        vector1,
+        vector2,
+        vectors[i],
+        vectors[(i + 1) % vectors.length]
+      )
+    )
+      count++;
+  return count;
+}
+
+// 与えられた領域vectorsが点vectorを含んでいるか判定する．
+function containPoint(vectors: Array<Vector2d>, vector: Vector2d): boolean {
+  const infinityPoint = new Vector2d(10 ** 9, 10 ** 9);
+  return crossingSegmentCount(vectors, vector, infinityPoint) % 2 === 1;
+}
+
+// 与えられた2つの頂点集合vectors1, vectors2が重なっているかを判定する．
+function isOverlaped(vectors1: Array<Vector2d>, vectors2: Array<Vector2d>) {
+  for (let i = 0; i < vectors2.length; i++)
+    if (
+      crossingSegmentCount(
+        vectors1,
+        vectors2[i],
+        vectors2[(i + 1) % vectors2.length]
+      ) > 0
+    )
+      return true;
+  for (let vector of vectors2) if (containPoint(vectors1, vector)) return true;
+  for (let vector of vectors1) if (containPoint(vectors2, vector)) return true;
+  return false;
+}
+
+// 与えられた頂点集合から外周を得る
+function perimeter(vectors: Array<Vector2d>) {
+  let bottomVertices: Array<Vector2d> = [];
+  let topVertices: Array<Vector2d> = [];
+
+  vectors = vectors.sort((a, b) => a.x - b.x);
+
+  // 凸多角形の下側を求めていく
+  let i = 0;
+  let thetas: Array<number>;
+  while (i + 1 < vectors.length) {
+    bottomVertices.push(vectors[i]);
+    thetas = vectors.map((_vector) => _vector.sub(vectors[i]).theta());
+    i = argmax(thetas, i + 1, vectors.length);
+  }
+  // 凸多角形の上側を求めていく
+  i = 0;
+  while (i + 1 < vectors.length) {
+    thetas = vectors.map((_vector) => _vector.sub(vectors[i]).theta());
+    i = argmin(thetas, i + 1, vectors.length);
+    topVertices.push(vectors[i]);
+  }
+
+  return bottomVertices.concat(topVertices.reverse());
 }
 
 // Mapに描写されるものはMapObjectです．
@@ -109,43 +176,12 @@ class MapObject {
     return Math.abs(outer) / 2;
   }
 
-  crossingSegmentCount(vector1: Vector2d, vector2: Vector2d): number {
-    let count = 0;
-    for (let i = 0; i < this.vertices.length; i++)
-      if (
-        isCrossingSegment(
-          vector1,
-          vector2,
-          this.vertices[i].add(this.base),
-          this.vertices[(i + 1) % this.vertices.length].add(this.base)
-        )
-      )
-        count++;
-    return count;
-  }
-
-  containPoint(vector: Vector2d): boolean {
-    const infinityPoint = new Vector2d(10 ** 9, 10 ** 9);
-    return this.crossingSegmentCount(vector, infinityPoint) % 2 === 1;
-  }
-
   // 衝突しているか？
   isOverlaped(other: District | Building): boolean {
-    for (let i = 0; i < other.vertices.length; i++)
-      if (
-        this.crossingSegmentCount(
-          other.vertices[i].add(other.base),
-          other.vertices[(i + 1) % other.vertices.length].add(other.base)
-        )
-      )
-        return true;
-    for (let vertex of other.vertices)
-      if (this.containPoint(vertex.add(other.base))) return true;
-
-    for (let vertex of this.vertices)
-      if (other.containPoint(vertex.add(this.base))) return true;
-
-    return false;
+    return isOverlaped(
+      this.vertices.map((vertex) => vertex.add(this.base)),
+      other.vertices.map((vertex) => vertex.add(other.base))
+    );
   }
 
   // 自身に力を加える
@@ -250,30 +286,8 @@ export class District extends MapObject {
         points.push(vertex.add(child.base)); // child.vertex + child.base
       }
     }
-    // x座標でソートする
-    points = points.sort((a, b) => a.x - b.x);
-
-    // pointsを含む凸多角形の外周の頂点を得る
-    let bottomVertices: Array<Vector2d> = [];
-    let topVertices: Array<Vector2d> = [];
-
-    // 凸多角形の下側を求めていく
-    let i = 0;
-    let thetas: Array<number>;
-    while (i + 1 < points.length) {
-      bottomVertices.push(points[i]);
-      thetas = points.map((_point) => _point.sub(points[i]).theta());
-      i = argmax(thetas, i + 1, points.length);
-    }
-    // 凸多角形の上側を求めていく
-    i = 0;
-    while (i + 1 < points.length) {
-      thetas = points.map((_point) => _point.sub(points[i]).theta());
-      i = argmin(thetas, i + 1, points.length);
-      topVertices.push(points[i]);
-    }
-
-    this.vertices = bottomVertices.concat(topVertices.reverse());
+    // 頂点の集合から外周を得る
+    this.vertices = perimeter(points);
   }
 }
 
