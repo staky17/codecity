@@ -83,6 +83,8 @@ export default (props: Props) => {
           district.base.add(absPosition).x * 30 + 250 - textWidth / 2,
           district.base.add(absPosition).z * 30 + 250
         );
+
+        // console.log("district", district);
         // *** ここまで地区に対する描画処理 ***
 
         // 地区なら子供（地区または建物）がいるはずなので，その子供をnodesに追加．
@@ -119,6 +121,7 @@ export default (props: Props) => {
   };
   // 1000msに一回呼び出す．
   setInterval(render, 1000);
+  // render();
 
   // contextを取得する
   useEffect(() => {

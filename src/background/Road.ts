@@ -1,13 +1,13 @@
 import * as THREE from "three";
 
-type BaseRoadSettings = {
+export type BaseRoadSettings = {
   width: number;
   length: number;
   color?: number;
   opacity?: number;
 };
 
-type RoadSettings = BaseRoadSettings & {
+export type RoadSettings = BaseRoadSettings & {
   radian?: number;
   highlightColor?: number;
 };

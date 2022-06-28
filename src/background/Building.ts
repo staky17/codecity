@@ -6,6 +6,7 @@ export type BaseBuildingSettings = {
   width: number;
   height: number;
   depth: number;
+  filename?: string;
   bodyColor?: number;
 };
 
@@ -25,6 +26,7 @@ export class BaseBuilding extends THREE.Group {
     width,
     height,
     depth,
+    filename = "",
     bodyColor = 0x8a2be2,
   }: BaseBuildingSettings) {
     super();
@@ -41,6 +43,7 @@ export class BuildingWithStripes extends THREE.Group {
     width,
     height,
     depth,
+    filename = "",
     stripeNum = 6,
     bodyColor = 0x8a2be2,
     highlightColor = 0xdda0dd,
@@ -89,6 +92,7 @@ export class BuildingWithWindows extends THREE.Group {
     width,
     height,
     depth,
+    filename = "",
     verticalWindowNum = 5,
     horizontalWindowNum = 5,
     bodyColor = 0x8a2be2,
@@ -145,7 +149,8 @@ calculateWidthDepthFrom4Coordinate と
 calculateCenterPositionFrom4Coordinateのヘルパー関数
  */
 function sortCoordinateXZValue(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ): [number[], number[]] {
   const descendingOrder = (a: number, b: number) => {
     if (a > b) return -1;
@@ -172,7 +177,8 @@ const result1 = calculateWidthDepthFrom4Coordinate(
 */
 
 function calculateWidthDepthFrom4Coordinate(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ): { width: number; depth: number } {
   const [arrx, arrz] = sortCoordinateXZValue(coordList);
 
@@ -201,7 +207,8 @@ const result = calculateCenterPositionFrom4Coordinate(
 */
 
 function calculateCenterPositionFrom4Coordinate(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ) {
   const [arrx, arrz] = sortCoordinateXZValue(coordList);
 
@@ -215,9 +222,11 @@ function calculateCenterPositionFrom4Coordinate(
 }
 
 export function createBuildingFrom4Coordinate(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D],
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D],
+  coordList: Coordinate2D[],
   height: number,
   buildingType: "Stripe" | "Windows",
+  filename?: string,
   bodyColor?: number,
   highlightColor?: number
 ) {
