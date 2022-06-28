@@ -33,7 +33,6 @@ export class SignBoard extends THREE.Group {
     const material_stick = new THREE.MeshBasicMaterial({
       color: signBoardColor,
     });
-    console.log(signBoardColor);
     const stickMesh = new THREE.Mesh(geometry_stick, material_stick);
     stickMesh.position.set(XPosition, YPosition / 2, ZPosition);
 
