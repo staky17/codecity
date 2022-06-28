@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+import { Coordinate2D } from "./Road";
+
 export type BaseBuildingSettings = {
   width: number;
   height: number;
@@ -131,12 +133,82 @@ export class BuildingWithWindows extends THREE.Group {
           windowLength_d * (2 * k + 3 / 2) - depth / 2
         );
         windows.push(window_x, window_z);
-        // windows.push(window_x);
       }
     }
 
-    // this.add(body, window_x, window_z);
     this.add(body, ...windows);
-    // this.add(...windows);
   }
+}
+
+/*
+calculateWidthDepthFrom4CoordinateとcalculateCenterPositionFrom4Coordinateのヘルパー関数
+ */
+function sortCoordinateXZValue(
+  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+): [number[], number[]] {
+  const descendingOrder = (a: number, b: number) => {
+    if (a > b) return -1;
+    if (a < b) return 1;
+    return 0;
+  };
+  let arrx = coordList.map((c) => c.x).sort(descendingOrder);
+  let arrz = coordList.map((c) => c.z).sort(descendingOrder);
+
+  return [arrx, arrz];
+}
+
+/* 4座標から幅と奥行きを得る
+// usage
+const result1 = calculateWidthDepthFrom4Coordinate(
+    [
+      {x:1,z:2},
+      {x:2,z:2},
+      {x:1,z:4},
+      {x:2,z:4},
+    ]
+)
+// {"width": 1,"depth": 2}
+*/
+
+function calculateWidthDepthFrom4Coordinate(
+  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+): { width: number; depth: number } {
+  const [arrx, arrz] = sortCoordinateXZValue(coordList);
+
+  // 前二つ、後ろ二つで平均(誤差対策)して、それらの差を出す。
+  const calcLength = (arr: number[]) => {
+    return Math.abs((arr[0] + arr[1]) / 2 - (arr[2] + arr[3]) / 2);
+  };
+
+  let width = calcLength(arrx);
+  let depth = calcLength(arrz);
+  console.log(width, depth);
+
+  return { width, depth };
+}
+
+/* 4座標から中心座標を得る
+// Usage
+const result = calculateCenterPositionFrom4Coordinate(
+  [
+    {x:1,z:2},
+    {x:2,z:2},
+    {x:1,z:4},
+    {x:2,z:4},
+  ]
+)
+// => {"x": 1.5,"z": 3}
+*/
+
+function calculateCenterPositionFrom4Coordinate(
+  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+) {
+  const [arrx, arrz] = sortCoordinateXZValue(coordList);
+
+  // 中心座標を出す
+  // 4つのx(or z)座標の値の平均値
+  const calcCenterPosition = (arr: number[]) => {
+    return arr.reduce((s, e) => s + e, 0) / 4;
+  };
+  return { x: calcCenterPosition(arrx), z: calcCenterPosition(arrz) };
 }
