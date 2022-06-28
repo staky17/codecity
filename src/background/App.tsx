@@ -51,7 +51,8 @@ export const App = () => {
   //  </div>
   //);
 
-  return <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer>;
+  // return <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer>;
+  return <City mapGenerator={mapGenerator} />;
 
   // return <City />;
 };
