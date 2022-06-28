@@ -62,14 +62,14 @@ export const City = () => {
     scene.add(building);
 
     const signBoard = new SignBoard({
-      filename: "sampleFileName",
-      signBoardColor: "#bbbb",
-      width: 200,
-      height: 30,
+      filename: "sampleFolderTown",
+      signBoardColor: "#c0c0c0",
+      width: 240,
+      height: 55,
       depth: 8,
-      XPosition: 50,
-      YPosition: 400,
-      ZPosition: 100,
+      XPosition: 100,
+      YPosition: 300,
+      ZPosition: 180,
     });
     scene.add(signBoard);
 
