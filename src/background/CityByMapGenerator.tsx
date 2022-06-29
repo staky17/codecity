@@ -11,18 +11,20 @@ import { BaseRoadSettings, Coordinate2D } from "./Road";
 
 export function CityByMapGenerator({
   mapGenerator,
+  componentInfoList,
   WindowWidth,
   WindowHeight,
 }: {
   mapGenerator: MapGenerator;
+  componentInfoList: ComponentInfo[];
   WindowWidth: number;
   WindowHeight: number;
 }) {
-  const [componentInfoList, setComponentInfoList] = useState(
-    getComponentInfo(mapGenerator)
-  );
+  // const [componentInfoList, setComponentInfoList] = useState(
+  //   getComponentInfo(mapGenerator)
+  // );
 
-  const [stage, setStage] = useState(new Stage(1500, 1500, componentInfoList));
+  const [stage, setStage] = useState(new Stage(WindowWidth, WindowHeight));
 
   const createBox = () => {
     const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({
@@ -37,19 +39,18 @@ export function CityByMapGenerator({
     // Three.js 内のオブジェクト を辞書 (state)
     // キーをファイル名、valueはコンポーネント
     console.log("create box");
+    // setStage(stage);
 
     function tick() {
-      // ここでscene.addを呼んではいけない...　じゃあどこで呼ぶの,
-      // どう呼ばれて欲しいの : 監視ファイルの変更時
-
-      // setComponentInfo(getComponentInfo(mapGenerator));
-      setComponentInfoList(getComponentInfo(mapGenerator));
-      console.log(componentInfoList);
-      // setStage(new Stage(1500, 1500, componentInfoList));
+      setStage(stage.add(getComponentInfo(mapGenerator)));
       console.log("added component", stage.scene.children);
+      // console.log(getComponentInfo(mapGenerator));
+      // stage.add(componentInfoList);
+      // console.log(componentInfoList);
       renderer.render(stage.scene, stage.camera);
       // requestAnimationFrame(tick);
     }
+    // tick();
     setInterval(tick, 1000);
   };
 
@@ -60,21 +61,24 @@ export function CityByMapGenerator({
   return <canvas id="cityCanvas" />;
 }
 
-// Componentの管理をする。
+// Light Camera, Scene ,Componentの管理をする。
 class Stage {
   public scene: THREE.Scene;
   public camera: THREE.Camera;
+  childrenNum: number;
+  buildinglist: THREE.Group[];
 
   constructor(
     WindowWidth: number,
-    WindowHeight: number,
-    componentInfoList: ComponentInfo[]
+    WindowHeight: number
+    // componentInfoList: ComponentInfo[]
   ) {
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.AxesHelper(1000));
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.65));
     this.scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
     this.scene.add(new THREE.DirectionalLight(0xffffff, 0.8));
+    this.childrenNum = this.scene.children.length;
 
     this.camera = new THREE.PerspectiveCamera(
       75,
@@ -85,8 +89,21 @@ class Stage {
     this.camera.position.set(-200, 1000, -800);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+    this.buildinglist = [];
+  }
+
+  add(componentInfoList: ComponentInfo[]) {
+    //sceneのbuildingがある場合に削除
+    if (this.buildinglist.length > 0) {
+      this.scene.remove(...this.buildinglist);
+      this.buildinglist.map((b) => {
+        b.remove();
+      });
+      // console.log(this.buildinglist.length);
+    }
+
     if (componentInfoList.length > 0) {
-      const buildinglist = componentInfoList.map((componentInfo) =>
+      this.buildinglist = componentInfoList.map((componentInfo) =>
         createBuildingFrom4Coordinate(
           componentInfo.coords,
           100,
@@ -94,12 +111,14 @@ class Stage {
           componentInfo.filename
         )
       );
-      console.log("buildinglist", buildinglist);
-      this.scene.add(...buildinglist);
+      console.log("buildinglist", this.buildinglist);
+      this.scene.add(...this.buildinglist);
     }
+    return this;
   }
 }
 
+// フォーマットされた状態
 type ComponentInfo = {
   type: string;
   filename: string;
@@ -110,6 +129,7 @@ type ComponentInfo = {
 // 本来であればGeometoryMapViewerの責務
 // 座標のscalingは分離したい...
 // cameraの位置は変えたくない...
+// mapGeneratorからMap情報を抽出してフォーマットする関数
 function getComponentInfo(mapGenerator: MapGenerator) {
   if (typeof mapGenerator.rootDistrict === "undefined") return [];
   let nodes: Array<District | Building> = [mapGenerator.rootDistrict];

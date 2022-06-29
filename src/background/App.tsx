@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import * as THREE from "three";
 import { CityByMapGenerator } from "./CityByMapGenerator";
 import { City } from "./City";
-import { MapGenerator } from "./mapGenerator";
+import { Building, District, MapGenerator, Vector2d } from "./mapGenerator";
 import GeometryMapViewer from "./GeometryMapViewer";
 import { map } from "lodash";
 
@@ -10,6 +10,10 @@ export const App = () => {
   // mapGeneratorはマップ情報を保持して，位置を変化させ続けるクラス
   // const [mapGenerator, _] = useState(new MapGenerator());
   const [mapGenerator, setMapGenerator] = useState(new MapGenerator());
+  let [componentInfoList, setComponentInfoList] = useState<ComponentInfo[]>(
+    []
+    // getComponentInfo(mapGenerator)
+  );
 
   // 画面（コンポーネント）が描写されたら一回だけ実行される
   useEffect(() => {
@@ -18,7 +22,10 @@ export const App = () => {
       console.log("街を初期化します", path);
       // mapGeneratorを初期化する
       mapGenerator.initialize(path);
-      // setMapGenerator(mapGenerator);
+      setMapGenerator(mapGenerator);
+      setComponentInfoList(getComponentInfo(mapGenerator));
+      console.log("初期化", mapGenerator);
+      console.log("初期化", componentInfoList);
     });
 
     // ファイルが1つ追加された時に実行される（フォルダが増えてもこれは実行されません）
@@ -29,6 +36,12 @@ export const App = () => {
         // ファイル情報を追加して，建物を増やす
         mapGenerator.addBuilding(fileInfo);
         // setMapGenerator(mapGenerator);
+
+        // console.log("街追加3", getComponentInfo(mapGenerator));
+        // console.log("街追加1", mapGenerator);
+        componentInfoList = getComponentInfo(mapGenerator);
+        // setComponentInfoList(getComponentInfo(mapGenerator));
+        // console.log("街追加2", componentInfoList);
       }
     );
 
@@ -49,20 +62,12 @@ export const App = () => {
     );
   }, []);
 
-  //return (
-  //  <div className="container">
-  //    <h1>This is background</h1>
-  //    {Object.keys(fileInfoDict).map((path) => (
-  //      <div key={path}>{path}</div>
-  //    ))}
-  //  </div>
-  //);
-
   return (
     <>
-      <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer>
+      {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
       <CityByMapGenerator
         mapGenerator={mapGenerator}
+        componentInfoList={componentInfoList}
         WindowWidth={1500}
         WindowHeight={1500}
       />
@@ -73,3 +78,55 @@ export const App = () => {
 
   // return <City />;
 };
+
+// フォーマット形式
+type ComponentInfo = {
+  type: string;
+  filename: string;
+  coords: Array<Vector2d>;
+};
+
+function getComponentInfo(mapGenerator: MapGenerator) {
+  const result: ComponentInfo[] = [];
+  if (typeof mapGenerator.rootDistrict === "undefined") return [];
+
+  let nodes: Array<District | Building> = [mapGenerator.rootDistrict];
+  let absPositions: Array<Vector2d> = [new Vector2d(0, 0)];
+  // nodeは，現在見ている地区または建物
+  let node: District | Building;
+  let absPosition: Vector2d;
+
+  while (nodes.length > 0) {
+    node = nodes.shift()!;
+    absPosition = absPositions.shift()!;
+    let absVertices = node.vertices.map((vertex) => {
+      return vertex.add(node.base).add(absPosition).times(60);
+    });
+
+    if (node instanceof District) {
+      let district: District = node;
+      nodes = nodes.concat(
+        Object.keys(district.children).map((key) => district.children[key])
+      );
+      absPositions = absPositions.concat(
+        Object.keys(district.children).map((_) => {
+          return district.base.add(absPosition);
+        })
+      );
+    }
+    if (node instanceof Building) {
+      let building: Building = node;
+      result.push({
+        type: "building",
+        filename: node.name,
+        coords: absVertices,
+      });
+    }
+    // MapObjectじゃないのでおそらくこうではないが一応。
+    // if (node instanceof Road) {
+    //   let road: Road = node;
+    //   result.push({type:"Road", filename:node.name, coords?})
+    // }
+  }
+  return result;
+}
