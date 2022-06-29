@@ -406,6 +406,8 @@ class MapObject {
 // 地区クラス
 export class District extends MapObject {
   public children: { [name: string]: District | Building } = {}; // 辞書オブジェクト{ "名前": District | Building }
+  public routes: Array<{ start: Vector2d; end: Vector2d; isOutline: boolean }> =
+    [];
   constructor(name: string, base: Vector2d) {
     // 親地区の重心を{0, 0}としたときの相対的な位置．
     const vertices: Array<Vector2d> = [
@@ -483,7 +485,7 @@ export class District extends MapObject {
   }
 
   // 道を生成する
-  generateRoads(): void {
+  generateRoutes(): void {
     const children = this.getChildrenAsList();
 
     // 各オブジェクトの座標にbaseを追加して基準を合わせる．
@@ -529,7 +531,6 @@ export class District extends MapObject {
       left: Set<Number>;
       right: Set<Number>;
     }> = [];
-    let routes: Array<{ start: Vector2d; end: Vector2d }> = [];
 
     for (let pair of pairs) {
       // 分離線は必ず得られる
@@ -668,30 +669,47 @@ export class District extends MapObject {
       }
     }
 
-    // 各線分を引く
+    this.routes = [];
+
     for (let routeCandidate of routeCandidates) {
-      if (routeCandidate.active)
-        this.debugLines.push({
+      if (routeCandidate.active) {
+        // 道を追加する
+        this.routes.push({
           start: routeCandidate.base.add(routeCandidate.dist1),
           end: routeCandidate.base.add(routeCandidate.dist2),
-          color: "#00c000",
+          isOutline: false,
         });
+        // 各線分を引く
+        // this.debugLines.push({
+        //   start: routeCandidate.base.add(routeCandidate.dist1),
+        //   end: routeCandidate.base.add(routeCandidate.dist2),
+        //   color: "#00c000",
+        // });
+      }
+    }
+    // 街の外周も道に加える
+    for (let i = 0; i < this.vertices.length; i++) {
+      this.routes.push({
+        start: this.vertices[i],
+        end: this.vertices[(i + 1) % this.vertices.length],
+        isOutline: true,
+      });
     }
   }
 }
 
 // 建物クラス
 export class Building extends MapObject {
-  public height: number;
+  public fileInfo: FileInfo;
   public active: boolean; // 追加した時点では表示しない．追加された後，建物同士の位置が調整されて，この建物の位置が確定したらactivateされて表示する．
   constructor(
     name: string,
     vertices: Array<Vector2d>,
     base: Vector2d,
-    height: number
+    fileInfo: FileInfo
   ) {
     super(name, vertices, base);
-    this.height = height;
+    this.fileInfo = fileInfo;
     this.active = false;
   }
 }
@@ -754,7 +772,7 @@ export class MapGenerator {
         new Vector2d(+width / 2, -height / 2),
       ],
       new Vector2d(Math.random() - 0.5, Math.random() - 0.5),
-      1
+      fileInfo
     );
 
     // rootから新しく建物を追加したdistrictまでを，逆順でオプティマイズする
@@ -768,7 +786,7 @@ export class MapGenerator {
       // 自分自身の頂点を書き換える．
       districts[d].updateVertices();
       // 道を引く
-      districts[d].generateRoads();
+      districts[d].generateRoutes();
     }
   }
 }

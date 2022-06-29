@@ -6,7 +6,7 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
-const SCALE = 10;
+const SCALE = 50;
 
 // 頂点集合からパスを生成する
 const viewPath = (
@@ -49,7 +49,7 @@ export default (props: Props) => {
     // 地区と建物を順に見ていく
     // nodesには，見るべき地区と建物が追加されていきます．キューになっている．
     let nodes: Array<District | Building> = [props.mapGenerator.rootDistrict];
-    let absPositions: Array<Vector2d> = [new Vector2d(0, 0)]; // 親地区の絶対座標が格納されている
+    let absPositions: Array<Vector2d> = [props.mapGenerator.rootDistrict.base]; // 親地区の絶対座標が格納されている
     // nodeは，現在見ている地区または建物
     let node: District | Building;
     let absPosition: Vector2d;
@@ -64,7 +64,7 @@ export default (props: Props) => {
       // 親に対しての相対位置なのを，絶対座標に置き換える．addなのはVector2dクラスを自前で作っているから．
       // javascriptにはoverride機能がないので，メソッドとしてベクトル演算できるようにしてある．
       let absVertices = node.vertices.map((vertex) => {
-        return vertex.add(node.base).add(absPosition); // vertex + node.base + absPosition
+        return vertex.add(absPosition); // vertex + absPosition
       });
 
       if (node instanceof District) {
@@ -73,9 +73,26 @@ export default (props: Props) => {
 
         // *** 3Dで表示する場合はここから地区に対する描画処理を書く ***
         // 地区を二次元マップに描写する(absVerticesが描画する絶対座標．[Vector2d(x, z), Vector2d(x, z), ...])という形で格納されている．
-        context.strokeStyle = "#00c000";
-        viewPath(context, absVertices);
-        context.stroke();
+        // context.strokeStyle = "#00c000";
+        // viewPath(context, absVertices);
+        // context.stroke();
+
+        for (let route of district.routes) {
+          let absStartPoint = route.start.add(absPosition),
+            absEndPoint = route.end.add(absPosition);
+          context.beginPath();
+          context.moveTo(
+            absStartPoint.x * SCALE + 250,
+            absStartPoint.z * SCALE + 250
+          );
+          context.lineTo(
+            absEndPoint.x * SCALE + 250,
+            absEndPoint.z * SCALE + 250
+          );
+          context.closePath();
+          context.strokeStyle = "#ff00ff";
+          context.stroke();
+        }
 
         // フォルダ名を表示させます．
         // let textWidth = context.measureText(district.name).width;
@@ -93,8 +110,8 @@ export default (props: Props) => {
         );
         // 相対座標を絶対座標に直すためにabsPositionを計算してabsPositionnsに追加．
         absPositions = absPositions.concat(
-          Object.keys(district.children).map((_) => {
-            return district.base.add(absPosition);
+          Object.keys(district.children).map((childName) => {
+            return district.children[childName].base.add(absPosition);
           })
         );
       } else {
@@ -120,7 +137,7 @@ export default (props: Props) => {
 
       // デバッグ用のマーカーや線を設置する
       for (let debugMarker of node.debugMarkers) {
-        let absPoint = debugMarker.point.add(absPosition).add(node.base);
+        let absPoint = debugMarker.point.add(absPosition);
         context.beginPath();
         context.arc(
           absPoint.x * SCALE + 250,
@@ -135,8 +152,8 @@ export default (props: Props) => {
       }
       // デバッグ用のマーカーや線を設置する
       for (let debugLine of node.debugLines) {
-        let absStartPoint = debugLine.start.add(absPosition).add(node.base),
-          absEndPoint = debugLine.end.add(absPosition).add(node.base);
+        let absStartPoint = debugLine.start.add(absPosition),
+          absEndPoint = debugLine.end.add(absPosition);
         context.beginPath();
         context.moveTo(
           absStartPoint.x * SCALE + 250,
