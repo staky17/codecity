@@ -6,6 +6,8 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
+const SCALE = 30;
+
 // 頂点集合からパスを生成する
 const viewPath = (
   context: CanvasRenderingContext2D,
@@ -13,9 +15,9 @@ const viewPath = (
 ) => {
   context.beginPath();
   let lastVertex = vertices[vertices.length - 1];
-  context.moveTo(lastVertex.x * 30 + 250, lastVertex.z * 30 + 250);
+  context.moveTo(lastVertex.x * SCALE + 250, lastVertex.z * SCALE + 250);
   for (let vertex of vertices) {
-    context.lineTo(vertex.x * 30 + 250, vertex.z * 30 + 250);
+    context.lineTo(vertex.x * SCALE + 250, vertex.z * SCALE + 250);
   }
   context.closePath();
 };
@@ -71,7 +73,7 @@ export default (props: Props) => {
 
         // *** 3Dで表示する場合はここから地区に対する描画処理を書く ***
         // 地区を二次元マップに描写する(absVerticesが描画する絶対座標．[Vector2d(x, z), Vector2d(x, z), ...])という形で格納されている．
-        context.strokeStyle = "#ff000080";
+        context.strokeStyle = "#00ff00";
         viewPath(context, absVertices);
         context.stroke();
 
@@ -80,8 +82,8 @@ export default (props: Props) => {
         context.fillStyle = "#ff0000c0";
         context.fillText(
           district.name,
-          district.base.add(absPosition).x * 30 + 250 - textWidth / 2,
-          district.base.add(absPosition).z * 30 + 250
+          district.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
+          district.base.add(absPosition).z * SCALE + 250
         );
 
         // console.log("district", district);
@@ -111,11 +113,44 @@ export default (props: Props) => {
         context.fillStyle = "#0000ffc0";
         context.fillText(
           building.name,
-          building.base.add(absPosition).x * 30 + 250 - textWidth / 2,
-          building.base.add(absPosition).z * 30 + 250
+          building.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
+          building.base.add(absPosition).z * SCALE + 250
         );
 
         // *** ここまで建物に対する描画処理 ***
+      }
+
+      // デバッグ用のマーカーや線を設置する
+      for (let debugMarker of node.debugMarkers) {
+        let absPoint = debugMarker.point.add(absPosition).add(node.base);
+        context.beginPath();
+        context.arc(
+          absPoint.x * SCALE + 250,
+          absPoint.z * SCALE + 250,
+          Math.ceil(SCALE / 15),
+          0,
+          2 * Math.PI
+        );
+        context.closePath();
+        context.fillStyle = debugMarker.color || "#000000";
+        context.fill();
+      }
+      // デバッグ用のマーカーや線を設置する
+      for (let debugLine of node.debugLines) {
+        let absStartPoint = debugLine.start.add(absPosition).add(node.base),
+          absEndPoint = debugLine.end.add(absPosition).add(node.base);
+        context.beginPath();
+        context.moveTo(
+          absStartPoint.x * SCALE + 250,
+          absStartPoint.z * SCALE + 250
+        );
+        context.lineTo(
+          absEndPoint.x * SCALE + 250,
+          absEndPoint.z * SCALE + 250
+        );
+        context.closePath();
+        context.strokeStyle = debugLine.color || "#000000";
+        context.stroke();
       }
     }
   };
