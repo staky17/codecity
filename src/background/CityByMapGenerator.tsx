@@ -59,7 +59,7 @@ class Stage {
     this.scene.add(new THREE.AxesHelper(1000));
     this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
     this.scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
-    this.scene.add(new THREE.DirectionalLight(0xffffff, 0.8));
+    // this.scene.add(new THREE.DirectionalLight(0xffffff, 0.8));
     this.childrenNum = this.scene.children.length;
 
     this.camera = new THREE.PerspectiveCamera(
@@ -68,8 +68,10 @@ class Stage {
       100,
       10000
     );
-    this.camera.position.set(-1200, 800, -1200);
-    this.camera.lookAt(new THREE.Vector3(1000, 0, 1000));
+    // this.camera.position.set(-1200, 800, -1200);
+    // this.camera.lookAt(new THREE.Vector3(1000, 0, 1000));
+    this.camera.position.set(1000, 1000, 1000);
+    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     this.buildinglist = [];
     this.roadlist = [];
@@ -77,19 +79,20 @@ class Stage {
   }
 
   update(componentInfoList: ComponentInfo[]) {
+    console.log(componentInfoList);
     //sceneのbuildingがある場合に削除
     if (this.buildinglist.length > 0) {
       this.scene.remove(...this.buildinglist);
-      // this.buildinglist.map((b) => {
-      //   b.clear();
-      // });
+      this.buildinglist.map((b) => {
+        b.clear();
+      });
     }
     //sceneのroadがある時に削除
     if (this.roadlist.length > 0) {
       this.scene.remove(...this.roadlist);
-      // this.buildinglist.map((road) => {
-      //   road.clear();
-      // });
+      this.buildinglist.map((road) => {
+        road.clear();
+      });
     }
 
     // Buildingを追加
@@ -98,11 +101,10 @@ class Stage {
         .filter((componentInfo) => componentInfo.type === "building")
         .map((componentInfo) =>
           createBuildingFrom4Coordinate(
-            componentInfo.coords,
+            componentInfo.coords.map((c) => c.times(60)),
             // componentInfo.height || 100,
-            100,
-            "Windows",
-            componentInfo.filename
+            componentInfo.fileInfo?.lineCount || 100,
+            "Stripe"
           )
         );
       // Roadを追加
@@ -110,9 +112,9 @@ class Stage {
         .filter((componentInfo) => componentInfo.type === "road")
         .map((componentInfo) =>
           createRoadFromStartToEnd(
-            componentInfo.coords[0],
-            componentInfo.coords[1],
-            10,
+            componentInfo.coords[0].times(60),
+            componentInfo.coords[1].times(60),
+            8,
             "NoLine"
           )
         );
@@ -129,8 +131,7 @@ class Stage {
 // フォーマットされた状態
 type ComponentInfo = {
   type: string;
-  height?: number;
-  filename: string;
+  fileInfo?: FileInfo;
   coords: Array<Vector2d>;
 };
 // 座標のscalingは分離したい...
@@ -150,29 +151,27 @@ function getComponentInfo(mapGenerator: MapGenerator): ComponentInfo[] {
     node = nodes.shift()!;
     absPosition = absPositions.shift()!;
     let absVertices = node.vertices.map((vertex) => {
-      return vertex.add(node.base).add(absPosition).times(60);
+      // return vertex.add(node.base).add(absPosition);
+      return vertex.add(absPosition); // vertex + absPosition
     });
-
-    // nodeに含まれるroadのinfoを追加
-    for (let debugLine of node.debugLines) {
-      let absStartPoint = debugLine.start.add(absPosition).add(node.base),
-        absEndPoint = debugLine.end.add(absPosition).add(node.base);
-      result.push({
-        type: "road",
-        filename: "",
-        coords: [absStartPoint.times(60), absEndPoint.times(60)],
-      });
-    }
 
     // nodeがDistrictの時は、座標情報の更新と、子nodeの追加
     if (node instanceof District) {
       let district: District = node;
+      for (let route of district.routes) {
+        let absStartPoint = route.start.add(absPosition),
+          absEndPoint = route.end.add(absPosition);
+        result.push({
+          type: "road",
+          coords: [absStartPoint, absEndPoint],
+        });
+      }
       nodes = nodes.concat(
         Object.keys(district.children).map((key) => district.children[key])
       );
       absPositions = absPositions.concat(
-        Object.keys(district.children).map((_) => {
-          return district.base.add(absPosition);
+        Object.keys(district.children).map((childName) => {
+          return district.children[childName].base.add(absPosition);
         })
       );
     }
@@ -181,8 +180,7 @@ function getComponentInfo(mapGenerator: MapGenerator): ComponentInfo[] {
       let building: Building = node;
       result.push({
         type: "building",
-        filename: node.name,
-        height: node.height,
+        fileInfo: building.fileInfo,
         coords: absVertices,
       });
     }

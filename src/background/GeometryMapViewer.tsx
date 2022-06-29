@@ -6,7 +6,7 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
-const SCALE = 50;
+const SCALE = 20;
 
 // 頂点集合からパスを生成する
 const viewPath = (

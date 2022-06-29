@@ -163,7 +163,9 @@ export function createRoadFromStartToEnd(
   lineType: "NoLine" | "CenterLine" | "DashedCenterLine"
   // priority が追加されるかも。
 ) {
-  const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  let length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  // 道を少し伸ばして切れ目を消す。
+  length += width * 0.8;
   const rad = Math.atan2(end.x - start.x, end.z - start.z);
 
   let road: THREE.Group;

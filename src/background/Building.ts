@@ -39,17 +39,17 @@ export class BaseBuilding extends THREE.Group {
     bodyColor = 0x8a2be2,
   }: BaseBuildingSettings) {
     super();
-    const texture = new THREE.TextureLoader().load(
-      "./src/textureImages/night_fade.png"
-    );
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.magFilter = THREE.NearestFilter;
-    // texture.repeat.set(４, 4);
+    // const texture = new THREE.TextureLoader().load(
+    //   "./src/textureImages/night_fade.png"
+    // );
+    // texture.wrapS = THREE.RepeatWrapping;
+    // texture.wrapT = THREE.RepeatWrapping;
+    // texture.magFilter = THREE.NearestFilter;
+    // // texture.repeat.set(４, 4);
 
     const material_body = new THREE.MeshLambertMaterial({
       color: bodyColor,
-      map: texture,
+      // map: texture,
     });
     const geometry_body = new THREE.BoxGeometry(width, height, depth);
 
@@ -222,8 +222,9 @@ function calculateWidthDepthFrom4Coordinate(
     return Math.abs((arr[0] + arr[1]) / 2 - (arr[2] + arr[3]) / 2);
   };
 
-  let width = calcLength(arrx);
-  let depth = calcLength(arrz);
+  // 道と被らないように少し小さくする。
+  let width = calcLength(arrx) - 10;
+  let depth = calcLength(arrz) - 10;
 
   return { width, depth };
 }
