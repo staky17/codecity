@@ -22,6 +22,8 @@ class BaseRoad extends THREE.Mesh {
       opacity: opacity,
     });
     super(geometryBaseRoad, materialBaseRoad);
+    geometryBaseRoad.dispose();
+    materialBaseRoad.dispose();
   }
 }
 
@@ -82,6 +84,9 @@ export class RoadWithCenterLine extends THREE.Group {
     this.add(road, centerline);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+
+    geometryCenterLine.dispose();
+    materialCenterLine.dispose();
   }
 }
 
@@ -130,6 +135,9 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     this.add(road, dashGroup);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+
+    geometryCenterLine.dispose();
+    materialCenterLine.dispose();
   }
 }
 

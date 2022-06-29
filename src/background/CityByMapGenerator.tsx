@@ -48,6 +48,7 @@ class Stage {
   childrenNum: number;
   buildinglist: THREE.Group[];
   roadlist: THREE.Group[];
+  vertexlist: Vector2d[];
 
   constructor(
     WindowWidth: number,
@@ -56,7 +57,7 @@ class Stage {
   ) {
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.AxesHelper(1000));
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
     this.scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
     this.scene.add(new THREE.DirectionalLight(0xffffff, 0.8));
     this.childrenNum = this.scene.children.length;
@@ -67,20 +68,28 @@ class Stage {
       100,
       10000
     );
-    this.camera.position.set(-1000, 500, -1000);
+    this.camera.position.set(-1200, 800, -1200);
     this.camera.lookAt(new THREE.Vector3(1000, 0, 1000));
 
     this.buildinglist = [];
     this.roadlist = [];
+    this.vertexlist = [];
   }
 
   update(componentInfoList: ComponentInfo[]) {
     //sceneのbuildingがある場合に削除
     if (this.buildinglist.length > 0) {
       this.scene.remove(...this.buildinglist);
-      this.buildinglist.map((b) => {
-        b.clear();
-      });
+      // this.buildinglist.map((b) => {
+      //   b.clear();
+      // });
+    }
+    //sceneのroadがある時に削除
+    if (this.roadlist.length > 0) {
+      this.scene.remove(...this.roadlist);
+      // this.buildinglist.map((road) => {
+      //   road.clear();
+      // });
     }
 
     // Buildingを追加
@@ -90,12 +99,13 @@ class Stage {
         .map((componentInfo) =>
           createBuildingFrom4Coordinate(
             componentInfo.coords,
-            componentInfo.height || 100,
+            // componentInfo.height || 100,
+            100,
             "Windows",
             componentInfo.filename
           )
         );
-
+      // Roadを追加
       this.roadlist = componentInfoList
         .filter((componentInfo) => componentInfo.type === "road")
         .map((componentInfo) =>
@@ -106,14 +116,14 @@ class Stage {
             "NoLine"
           )
         );
-      console.log("buildinglist", this.buildinglist);
-      console.log("roadlist", this.roadlist);
+      // console.log("buildinglist", this.buildinglist);
+      // console.log("roadlist", this.roadlist);
       this.scene.add(...this.buildinglist);
       this.scene.add(...this.roadlist);
     }
-
-    return this;
   }
+
+  ajustCamera(componentInfoList: ComponentInfo[]) {}
 }
 
 // フォーマットされた状態
@@ -143,6 +153,17 @@ function getComponentInfo(mapGenerator: MapGenerator): ComponentInfo[] {
       return vertex.add(node.base).add(absPosition).times(60);
     });
 
+    // nodeに含まれるroadのinfoを追加
+    for (let debugLine of node.debugLines) {
+      let absStartPoint = debugLine.start.add(absPosition).add(node.base),
+        absEndPoint = debugLine.end.add(absPosition).add(node.base);
+      result.push({
+        type: "road",
+        filename: "",
+        coords: [absStartPoint.times(60), absEndPoint.times(60)],
+      });
+    }
+
     // nodeがDistrictの時は、座標情報の更新と、子nodeの追加
     if (node instanceof District) {
       let district: District = node;
@@ -163,16 +184,6 @@ function getComponentInfo(mapGenerator: MapGenerator): ComponentInfo[] {
         filename: node.name,
         height: node.height,
         coords: absVertices,
-      });
-    }
-    // nodeに含まれるroadのinfoを追加
-    for (let debugLine of node.debugLines) {
-      let absStartPoint = debugLine.start.add(absPosition).add(node.base),
-        absEndPoint = debugLine.end.add(absPosition).add(node.base);
-      result.push({
-        type: "road",
-        filename: "",
-        coords: [absStartPoint.times(60), absEndPoint.times(60)],
       });
     }
   }

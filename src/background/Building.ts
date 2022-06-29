@@ -2,6 +2,15 @@ import * as THREE from "three";
 
 import { Coordinate2D } from "./Road";
 
+import { colors } from "./textureColors";
+import night_fade from "./textureImages/night_fade.png";
+import rainy_ashville from "./textureImages/rainy_ashville.png";
+import tempting_azure from "./textureImages/tempting_azure.png";
+import amy_crisp from "./textureImages/amy_crisp.png";
+import mprphius_den from "./textureImages/mprphius_den.png";
+import plum_plate from "./textureImages/plum_plate.png";
+import sharpeye_eagle from "./textureImages/sharpeye_eagle.png";
+
 export type BaseBuildingSettings = {
   width: number;
   height: number;
@@ -30,8 +39,20 @@ export class BaseBuilding extends THREE.Group {
     bodyColor = 0x8a2be2,
   }: BaseBuildingSettings) {
     super();
-    const material_body = new THREE.MeshLambertMaterial({ color: bodyColor });
+    const texture = new THREE.TextureLoader().load(
+      "./src/textureImages/night_fade.png"
+    );
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.magFilter = THREE.NearestFilter;
+    // texture.repeat.set(４, 4);
+
+    const material_body = new THREE.MeshLambertMaterial({
+      color: bodyColor,
+      map: texture,
+    });
     const geometry_body = new THREE.BoxGeometry(width, height, depth);
+
     const body = new THREE.Mesh(geometry_body, material_body);
     body.position.set(0, height / 2, 0);
     this.add(body);
