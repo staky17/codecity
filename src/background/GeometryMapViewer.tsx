@@ -6,7 +6,7 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
-const SCALE = 30;
+const SCALE = 10;
 
 // 頂点集合からパスを生成する
 const viewPath = (
@@ -73,20 +73,18 @@ export default (props: Props) => {
 
         // *** 3Dで表示する場合はここから地区に対する描画処理を書く ***
         // 地区を二次元マップに描写する(absVerticesが描画する絶対座標．[Vector2d(x, z), Vector2d(x, z), ...])という形で格納されている．
-        context.strokeStyle = "#00ff00";
+        context.strokeStyle = "#00c000";
         viewPath(context, absVertices);
         context.stroke();
 
         // フォルダ名を表示させます．
-        let textWidth = context.measureText(district.name).width;
-        context.fillStyle = "#ff0000c0";
-        context.fillText(
-          district.name,
-          district.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
-          district.base.add(absPosition).z * SCALE + 250
-        );
-
-        // console.log("district", district);
+        // let textWidth = context.measureText(district.name).width;
+        // context.fillStyle = "#ff0000c0";
+        // context.fillText(
+        //   district.name,
+        //   district.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
+        //   district.base.add(absPosition).z * SCALE + 250
+        // );
         // *** ここまで地区に対する描画処理 ***
 
         // 地区なら子供（地区または建物）がいるはずなので，その子供をnodesに追加．
@@ -109,13 +107,13 @@ export default (props: Props) => {
         context.fill();
 
         // ファイル名を表示させます．
-        let textWidth = context.measureText(building.name).width;
-        context.fillStyle = "#0000ffc0";
-        context.fillText(
-          building.name,
-          building.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
-          building.base.add(absPosition).z * SCALE + 250
-        );
+        // let textWidth = context.measureText(building.name).width;
+        // context.fillStyle = "#0000ffc0";
+        // context.fillText(
+        //   building.name,
+        //   building.base.add(absPosition).x * SCALE + 250 - textWidth / 2,
+        //   building.base.add(absPosition).z * SCALE + 250
+        // );
 
         // *** ここまで建物に対する描画処理 ***
       }
