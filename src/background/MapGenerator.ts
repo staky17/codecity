@@ -682,16 +682,16 @@ export class District extends MapObject {
 
 // 建物クラス
 export class Building extends MapObject {
-  public height: number;
+  public fileInfo: FileInfo;
   public active: boolean; // 追加した時点では表示しない．追加された後，建物同士の位置が調整されて，この建物の位置が確定したらactivateされて表示する．
   constructor(
     name: string,
     vertices: Array<Vector2d>,
     base: Vector2d,
-    height: number
+    fileInfo: FileInfo,
   ) {
     super(name, vertices, base);
-    this.height = height;
+    this.fileInfo = fileInfo;
     this.active = false;
   }
 }
@@ -754,7 +754,7 @@ export class MapGenerator {
         new Vector2d(+width / 2, -height / 2),
       ],
       new Vector2d(Math.random() - 0.5, Math.random() - 0.5),
-      1
+      fileInfo
     );
 
     // rootから新しく建物を追加したdistrictまでを，逆順でオプティマイズする
