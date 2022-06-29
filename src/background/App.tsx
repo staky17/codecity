@@ -10,10 +10,7 @@ export const App = () => {
   // mapGeneratorはマップ情報を保持して，位置を変化させ続けるクラス
   // const [mapGenerator, _] = useState(new MapGenerator());
   const [mapGenerator, setMapGenerator] = useState(new MapGenerator());
-  let [componentInfoList, setComponentInfoList] = useState<ComponentInfo[]>(
-    []
-    // getComponentInfo(mapGenerator)
-  );
+  let [componentInfoList, setComponentInfoList] = useState<ComponentInfo[]>([]);
 
   // 画面（コンポーネント）が描写されたら一回だけ実行される
   useEffect(() => {
@@ -22,10 +19,6 @@ export const App = () => {
       console.log("街を初期化します", path);
       // mapGeneratorを初期化する
       mapGenerator.initialize(path);
-      setMapGenerator(mapGenerator);
-      setComponentInfoList(getComponentInfo(mapGenerator));
-      console.log("初期化", mapGenerator);
-      console.log("初期化", componentInfoList);
     });
 
     // ファイルが1つ追加された時に実行される（フォルダが増えてもこれは実行されません）
@@ -35,13 +28,6 @@ export const App = () => {
         console.log("建物を追加します", fileInfo);
         // ファイル情報を追加して，建物を増やす
         mapGenerator.addBuilding(fileInfo);
-        // setMapGenerator(mapGenerator);
-
-        // console.log("街追加3", getComponentInfo(mapGenerator));
-        // console.log("街追加1", mapGenerator);
-        componentInfoList = getComponentInfo(mapGenerator);
-        // setComponentInfoList(getComponentInfo(mapGenerator));
-        // console.log("街追加2", componentInfoList);
       }
     );
 
@@ -49,7 +35,6 @@ export const App = () => {
       "updateFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を更新します", fileInfo);
-        // setMapGenerator(mapGenerator);
       }
     );
 
@@ -57,14 +42,12 @@ export const App = () => {
       "removeFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を削除します", fileInfo);
-        // setMapGenerator(mapGenerator);
       }
     );
   }, []);
 
   return (
     <>
-      {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
       <CityByMapGenerator
         mapGenerator={mapGenerator}
         componentInfoList={componentInfoList}
@@ -73,10 +56,6 @@ export const App = () => {
       />
     </>
   );
-
-  // return <City mapGenerator={mapGenerator} />;
-
-  // return <City />;
 };
 
 // フォーマット形式

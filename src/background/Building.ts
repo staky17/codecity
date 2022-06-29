@@ -35,6 +35,9 @@ export class BaseBuilding extends THREE.Group {
     const body = new THREE.Mesh(geometry_body, material_body);
     body.position.set(0, height / 2, 0);
     this.add(body);
+    // キャッシュ削除(応急処置)
+    material_body.dispose();
+    geometry_body.dispose();
   }
 }
 
@@ -84,6 +87,12 @@ export class BuildingWithStripes extends THREE.Group {
     );
     roof_circle.position.set(width / 10, height, 0);
     this.add(body, ...stripes, roof_circle);
+
+    // キャッシュ削除（応急処置）
+    geometry_floor.dispose();
+    geometry_roof_circle.dispose();
+    material_floor.dispose();
+    material_roof_circle.dispose();
   }
 }
 
@@ -141,6 +150,11 @@ export class BuildingWithWindows extends THREE.Group {
     }
 
     this.add(body, ...windows);
+
+    // キャッシュ削除(応急処置)
+    geometry_window_x.dispose();
+    geometry_window_z.dispose();
+    material_window.dispose();
   }
 }
 

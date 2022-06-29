@@ -20,13 +20,9 @@ export function CityByMapGenerator({
   WindowWidth: number;
   WindowHeight: number;
 }) {
-  // const [componentInfoList, setComponentInfoList] = useState(
-  //   getComponentInfo(mapGenerator)
-  // );
+  const [stage, _] = useState(new Stage(WindowWidth, WindowHeight));
 
-  const [stage, setStage] = useState(new Stage(WindowWidth, WindowHeight));
-
-  const createBox = () => {
+  const createCity = () => {
     const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#cityCanvas") as HTMLCanvasElement,
       alpha: true,
@@ -35,28 +31,17 @@ export function CityByMapGenerator({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(WindowWidth, WindowHeight);
 
-    // reactのstateとして、scene
-    // Three.js 内のオブジェクト を辞書 (state)
-    // キーをファイル名、valueはコンポーネント
-    console.log("create box");
-    // setStage(stage);
-
     function tick() {
-      setStage(stage.add(getComponentInfo(mapGenerator)));
-      console.log("added component", stage.scene.children);
-      // console.log(getComponentInfo(mapGenerator));
-      // stage.add(componentInfoList);
-      // console.log(componentInfoList);
+      //
+      stage.update(getComponentInfo(mapGenerator));
       renderer.render(stage.scene, stage.camera);
-      // requestAnimationFrame(tick);
     }
-    // tick();
     setInterval(tick, 1000);
   };
 
   // マウント時一回だけ描写
   useEffect(() => {
-    createBox();
+    createCity();
   }, []);
   return <canvas id="cityCanvas" />;
 }
@@ -92,14 +77,13 @@ class Stage {
     this.buildinglist = [];
   }
 
-  add(componentInfoList: ComponentInfo[]) {
+  update(componentInfoList: ComponentInfo[]) {
     //sceneのbuildingがある場合に削除
     if (this.buildinglist.length > 0) {
       this.scene.remove(...this.buildinglist);
       this.buildinglist.map((b) => {
-        b.remove();
+        b.clear();
       });
-      // console.log(this.buildinglist.length);
     }
 
     if (componentInfoList.length > 0) {
@@ -111,7 +95,6 @@ class Stage {
           componentInfo.filename
         )
       );
-      console.log("buildinglist", this.buildinglist);
       this.scene.add(...this.buildinglist);
     }
     return this;
