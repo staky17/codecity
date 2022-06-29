@@ -258,6 +258,7 @@ export function createBuildingFrom4Coordinate(
         ...baseBuildingSettings,
         bodyColor,
         highlightColor,
+        filename,
       });
       building.position.set(x, 0, z);
       return building;
@@ -267,6 +268,7 @@ export function createBuildingFrom4Coordinate(
         ...baseBuildingSettings,
         bodyColor,
         highlightColor,
+        filename,
       });
       building.position.set(x, 0, z);
       return building;

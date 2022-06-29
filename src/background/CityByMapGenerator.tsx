@@ -1,28 +1,23 @@
 import * as THREE from "three";
 
 import React, { useEffect, useState } from "react";
-import {
-  BaseBuildingSettings,
-  BuildingWithWindows,
-  createBuildingFrom4Coordinate,
-} from "./Building";
+import { createBuildingFrom4Coordinate } from "./Building";
 import { Vector2d, MapGenerator, District, Building } from "./mapGenerator";
-import { BaseRoadSettings, Coordinate2D } from "./Road";
+import { createRoadFromStartToEnd } from "./Road";
 
 export function CityByMapGenerator({
   mapGenerator,
-  componentInfoList,
   WindowWidth,
   WindowHeight,
 }: {
   mapGenerator: MapGenerator;
-  componentInfoList: ComponentInfo[];
   WindowWidth: number;
   WindowHeight: number;
 }) {
   const [stage, _] = useState(new Stage(WindowWidth, WindowHeight));
 
   const createCity = () => {
+    // THREEjsのrenderer
     const renderer: THREE.WebGLRenderer = new THREE.WebGLRenderer({
       canvas: document.querySelector("#cityCanvas") as HTMLCanvasElement,
       alpha: true,
@@ -31,8 +26,8 @@ export function CityByMapGenerator({
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(WindowWidth, WindowHeight);
 
+    // 最新の情報で描画
     function tick() {
-      //
       stage.update(getComponentInfo(mapGenerator));
       renderer.render(stage.scene, stage.camera);
     }
@@ -52,6 +47,7 @@ class Stage {
   public camera: THREE.Camera;
   childrenNum: number;
   buildinglist: THREE.Group[];
+  roadlist: THREE.Group[];
 
   constructor(
     WindowWidth: number,
@@ -71,10 +67,11 @@ class Stage {
       100,
       10000
     );
-    this.camera.position.set(-200, 1000, -800);
-    this.camera.lookAt(new THREE.Vector3(0, 0, 0));
+    this.camera.position.set(-1000, 500, -1000);
+    this.camera.lookAt(new THREE.Vector3(1000, 0, 1000));
 
     this.buildinglist = [];
+    this.roadlist = [];
   }
 
   update(componentInfoList: ComponentInfo[]) {
@@ -86,17 +83,35 @@ class Stage {
       });
     }
 
+    // Buildingを追加
     if (componentInfoList.length > 0) {
-      this.buildinglist = componentInfoList.map((componentInfo) =>
-        createBuildingFrom4Coordinate(
-          componentInfo.coords,
-          100,
-          "Windows",
-          componentInfo.filename
-        )
-      );
+      this.buildinglist = componentInfoList
+        .filter((componentInfo) => componentInfo.type === "building")
+        .map((componentInfo) =>
+          createBuildingFrom4Coordinate(
+            componentInfo.coords,
+            componentInfo.height || 100,
+            "Windows",
+            componentInfo.filename
+          )
+        );
+
+      this.roadlist = componentInfoList
+        .filter((componentInfo) => componentInfo.type === "road")
+        .map((componentInfo) =>
+          createRoadFromStartToEnd(
+            componentInfo.coords[0],
+            componentInfo.coords[1],
+            10,
+            "NoLine"
+          )
+        );
+      console.log("buildinglist", this.buildinglist);
+      console.log("roadlist", this.roadlist);
       this.scene.add(...this.buildinglist);
+      this.scene.add(...this.roadlist);
     }
+
     return this;
   }
 }
@@ -104,24 +119,22 @@ class Stage {
 // フォーマットされた状態
 type ComponentInfo = {
   type: string;
+  height?: number;
   filename: string;
   coords: Array<Vector2d>;
 };
-
-// CreateBuildingの引数を作らなければいけない。
-// 本来であればGeometoryMapViewerの責務
 // 座標のscalingは分離したい...
 // cameraの位置は変えたくない...
-// mapGeneratorからMap情報を抽出してフォーマットする関数
-function getComponentInfo(mapGenerator: MapGenerator) {
-  if (typeof mapGenerator.rootDistrict === "undefined") return [];
+// MapGeneratorから、必要なパラメータを成形して取得する。
+function getComponentInfo(mapGenerator: MapGenerator): ComponentInfo[] {
+  const result: ComponentInfo[] = [];
+  if (typeof mapGenerator.rootDistrict === "undefined") return result;
+
   let nodes: Array<District | Building> = [mapGenerator.rootDistrict];
   let absPositions: Array<Vector2d> = [new Vector2d(0, 0)];
   // nodeは，現在見ている地区または建物
   let node: District | Building;
   let absPosition: Vector2d;
-
-  const result: ComponentInfo[] = [];
 
   while (nodes.length > 0) {
     node = nodes.shift()!;
@@ -130,6 +143,7 @@ function getComponentInfo(mapGenerator: MapGenerator) {
       return vertex.add(node.base).add(absPosition).times(60);
     });
 
+    // nodeがDistrictの時は、座標情報の更新と、子nodeの追加
     if (node instanceof District) {
       let district: District = node;
       nodes = nodes.concat(
@@ -141,19 +155,26 @@ function getComponentInfo(mapGenerator: MapGenerator) {
         })
       );
     }
+    // nodeがbuildingの時に、infoを追加
     if (node instanceof Building) {
       let building: Building = node;
       result.push({
         type: "building",
         filename: node.name,
+        height: node.height,
         coords: absVertices,
       });
     }
-    // MapObjectじゃないのでおそらくこうではないが一応。
-    // if (node instanceof Road) {
-    //   let road: Road = node;
-    //   result.push({type:"Road", filename:node.name, coords?})
-    // }
+    // nodeに含まれるroadのinfoを追加
+    for (let debugLine of node.debugLines) {
+      let absStartPoint = debugLine.start.add(absPosition).add(node.base),
+        absEndPoint = debugLine.end.add(absPosition).add(node.base);
+      result.push({
+        type: "road",
+        filename: "",
+        coords: [absStartPoint.times(60), absEndPoint.times(60)],
+      });
+    }
   }
   return result;
 }
