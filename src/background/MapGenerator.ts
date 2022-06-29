@@ -288,6 +288,51 @@ function getSeparateLine(
   return null;
 }
 
+// 線分(vector2とvector3を端点とする)と、点(vector1)からその直線に引いた垂線が交わるかどうか
+function isCrossingSegmentAndPerpendicularLine(
+  vector1: Vector2d,
+  vector2: Vector2d,
+  vector3: Vector2d
+): boolean {
+  const t =
+    vector1.sub(vector2).dot(vector3.sub(vector2)) /
+    vector3.sub(vector2).size();
+  return 0 <= t && t <= vector3.sub(vector2).size();
+}
+
+// 直線(vector2とvector3を通る)と、点(vector1)からその直線に引いた垂線の交点
+function projection(
+  vector1: Vector2d,
+  vector2: Vector2d,
+  vector3: Vector2d
+): Vector2d {
+  const t =
+    vector1.sub(vector2).dot(vector3.sub(vector2)) /
+    vector3.sub(vector2).size();
+  return vector2.add(vector3.sub(vector2).times(t));
+}
+
+// 点(vector1)に対して直線(vector2とvector3を通る)と対称な点
+function reflection(
+  vector1: Vector2d,
+  vector2: Vector2d,
+  vector3: Vector2d
+): Vector2d {
+  return vector1.add(
+    projection(vector1, vector2, vector3).sub(vector1).times(2)
+  );
+}
+
+// set1がset2の上位集合である
+function isSuperset(set1: Set<any>, set2: Set<any>) {
+  for (var elem of set2) {
+    if (!set1.has(elem)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Mapに描写されるものはMapObjectです．
 // 建物や地区の基底クラスです．
 // 建物と地区に共通する部分を書く．
@@ -480,6 +525,9 @@ export class District extends MapObject {
       dist1isOuter: boolean; // base + dist1が外周になっているか
       dist2isOuter: boolean; // base + dist2が外周になっているか
       base: Vector2d; // スタート地点
+      active: boolean; // 道として表示する(true)，捨てるか(false)
+      left: Set<Number>;
+      right: Set<Number>;
     }> = [];
     let routes: Array<{ start: Vector2d; end: Vector2d }> = [];
 
@@ -547,33 +595,87 @@ export class District extends MapObject {
         dist1isOuter: minkPositive === null,
         dist2isOuter: minkNegative === null,
         base: separateLine[0],
+        active: false,
+        left: new Set<number>(),
+        right: new Set<number>(),
       });
     }
 
     // 線分の両端がouterであるものはルートとして確定させる
     for (let routeCandidate of routeCandidates) {
-      if (routeCandidate.dist1isOuter || routeCandidate.dist2isOuter)
-        routes.push({
-          start: routeCandidate.base.add(routeCandidate.dist1),
-          end: routeCandidate.base.add(routeCandidate.dist2),
-        });
+      if (routeCandidate.dist1isOuter && routeCandidate.dist2isOuter) {
+        for (let i = 0; i < children.length; i++) {
+          // オブジェクトが線分によって分けられている．
+          let c = routeCandidate.base.add(routeCandidate.dist1);
+          let p = routeCandidate.base.add(routeCandidate.dist2);
+          let q = children[i].base;
+          if (isCrossingSegmentAndPerpendicularLine(q, c, p)) {
+            if ((p.x - c.x) * (q.z - c.z) - (p.z - c.z) * (q.x - c.x) > 0)
+              // 反時計回り(pを下，qを上としたときに左に点がくる)
+              routeCandidate.left.add(i);
+            // 反時計回り(pを下，qを上としたときに右に点がくる)
+            else routeCandidate.right.add(i);
+          }
+        }
+        // アクティブな道で，同じ分け方をする道か，この道がさらに大きく分ける道があればそれを削除する
+        for (let _routeCandidate of routeCandidates) {
+          if (
+            _routeCandidate.active === true &&
+            ((isSuperset(routeCandidate.left, _routeCandidate.left) &&
+              isSuperset(routeCandidate.right, _routeCandidate.right)) ||
+              (isSuperset(routeCandidate.left, _routeCandidate.right) &&
+                isSuperset(routeCandidate.right, _routeCandidate.left)))
+          )
+            _routeCandidate.active = false;
+        }
+        routeCandidate.active = true;
+        console.log(routeCandidate);
+      }
     }
-    // 線分の片方がouterであるものはルートとして確定させる
+
+    // 線分の両端がouterであるものはルートとして確定させる
     for (let routeCandidate of routeCandidates) {
-      if (routeCandidate.dist1isOuter && routeCandidate.dist2isOuter)
-        routes.push({
-          start: routeCandidate.base.add(routeCandidate.dist1),
-          end: routeCandidate.base.add(routeCandidate.dist2),
-        });
+      if (
+        (routeCandidate.dist1isOuter && !routeCandidate.dist2isOuter) ||
+        (!routeCandidate.dist1isOuter && routeCandidate.dist2isOuter)
+      ) {
+        for (let i = 0; i < children.length; i++) {
+          // オブジェクトが線分によって分けられている．
+          let c = routeCandidate.base.add(routeCandidate.dist1);
+          let p = routeCandidate.base.add(routeCandidate.dist2);
+          let q = children[i].base;
+          if (isCrossingSegmentAndPerpendicularLine(q, c, p)) {
+            if ((p.x - c.x) * (q.z - c.z) - (p.z - c.z) * (q.x - c.x) > 0)
+              // 反時計回り(pを下，qを上としたときに左に点がくる)
+              routeCandidate.left.add(i);
+            // 反時計回り(pを下，qを上としたときに右に点がくる)
+            else routeCandidate.right.add(i);
+          }
+        }
+        // アクティブな道で，同じ分け方をする道か，この道がさらに大きく分ける道があればそれを削除する
+        for (let _routeCandidate of routeCandidates) {
+          if (
+            _routeCandidate.active === true &&
+            ((isSuperset(routeCandidate.left, _routeCandidate.left) &&
+              isSuperset(routeCandidate.right, _routeCandidate.right)) ||
+              (isSuperset(routeCandidate.left, _routeCandidate.right) &&
+                isSuperset(routeCandidate.right, _routeCandidate.left)))
+          )
+            _routeCandidate.active = false;
+        }
+        routeCandidate.active = true;
+        console.log(routeCandidate);
+      }
     }
 
     // 各線分を引く
-    for (let route of routes) {
-      this.debugLines.push({
-        start: route.start,
-        end: route.end,
-        color: "#00ff00",
-      });
+    for (let routeCandidate of routeCandidates) {
+      if (routeCandidate.active)
+        this.debugLines.push({
+          start: routeCandidate.base.add(routeCandidate.dist1),
+          end: routeCandidate.base.add(routeCandidate.dist2),
+          color: "#00c000",
+        });
     }
   }
 }
@@ -641,13 +743,15 @@ export class MapGenerator {
     }
 
     let buildingName = relativePath[relativePath.length - 1];
+    let width = 1;
+    let height = 1;
     districts[d].children[buildingName] = new Building(
       buildingName,
       [
-        new Vector2d(-0.5, -0.5),
-        new Vector2d(-0.5, +0.5),
-        new Vector2d(+0.5, +0.5),
-        new Vector2d(+0.5, -0.5),
+        new Vector2d(-width / 2, -height / 2),
+        new Vector2d(-width / 2, +height / 2),
+        new Vector2d(+width / 2, +height / 2),
+        new Vector2d(+width / 2, -height / 2),
       ],
       new Vector2d(Math.random() - 0.5, Math.random() - 0.5),
       1
