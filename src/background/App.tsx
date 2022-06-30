@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import * as THREE from "three";
-import { City } from "./City";
-import { MapGenerator } from "./mapGenerator";
+import { CityByMapGenerator } from "./CityByMapGenerator";
+import { Building, District, MapGenerator, Vector2d } from "./mapGenerator";
 import GeometryMapViewer from "./GeometryMapViewer";
 
 export const App = () => {
@@ -31,6 +30,7 @@ export const App = () => {
       "updateFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を更新します", fileInfo);
+        mapGenerator.updateBuilding(fileInfo);
       }
     );
 
@@ -38,20 +38,15 @@ export const App = () => {
       "removeFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
         console.log("建物を削除します", fileInfo);
+        mapGenerator.removeBuilding(fileInfo);
       }
     );
   }, []);
 
-  //return (
-  //  <div className="container">
-  //    <h1>This is background</h1>
-  //    {Object.keys(fileInfoDict).map((path) => (
-  //      <div key={path}>{path}</div>
-  //    ))}
-  //  </div>
-  //);
-
-  return <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer>;
-
-  // return <City />;
+  return (
+    <>
+      {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
+      <CityByMapGenerator mapGenerator={mapGenerator} />
+    </>
+  );
 };

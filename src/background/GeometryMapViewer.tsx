@@ -6,7 +6,7 @@ interface Props {
   mapGenerator: MapGenerator;
 }
 
-const SCALE = 50;
+const SCALE = 20;
 
 // 頂点集合からパスを生成する
 const viewPath = (
@@ -171,6 +171,7 @@ export default (props: Props) => {
   };
   // 1000msに一回呼び出す．
   setInterval(render, 1000);
+  // render();
 
   // contextを取得する
   useEffect(() => {

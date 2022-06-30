@@ -630,7 +630,6 @@ export class District extends MapObject {
             _routeCandidate.active = false;
         }
         routeCandidate.active = true;
-        console.log(routeCandidate);
       }
     }
 
@@ -665,7 +664,6 @@ export class District extends MapObject {
             _routeCandidate.active = false;
         }
         routeCandidate.active = true;
-        console.log(routeCandidate);
       }
     }
 
@@ -696,6 +694,9 @@ export class District extends MapObject {
       });
     }
   }
+  removeChild(buildingName: string) {
+    delete this.children[buildingName];
+  }
 }
 
 // 建物クラス
@@ -711,6 +712,9 @@ export class Building extends MapObject {
     super(name, vertices, base);
     this.fileInfo = fileInfo;
     this.active = false;
+  }
+  updateFileInfo(fileInfo: FileInfo) {
+    this.fileInfo = fileInfo;
   }
 }
 
@@ -788,5 +792,68 @@ export class MapGenerator {
       // 道を引く
       districts[d].generateRoutes();
     }
+  }
+
+  updateBuilding(fileInfo: FileInfo): void {
+    // フォルダが選択されいない時は何もしない（そんなケースは存在しないはず）
+    if (
+      typeof this.rootPath === "undefined" ||
+      typeof this.rootDistrict === "undefined"
+    )
+      return;
+
+    // ルートディレクトリからのパスの配列 relativePath（最後の要素はファイル名）
+    // /a/b/c/d -> ["a", "b", "c", "d"]
+    // / -> []
+    let relativePath = fileInfo.path
+      .substring(this.rootPath.length)
+      .split("/")
+      .splice(1);
+
+    let districtName;
+    let districts = [this.rootDistrict];
+    let d = 0;
+    for (d = 0; d < relativePath.length - 1; d++) {
+      districtName = relativePath[d];
+      districts.push(districts[d].children[districtName] as District);
+    }
+
+    let buildingName = relativePath[relativePath.length - 1];
+
+    let building = districts[d].children[buildingName];
+    // 行数などがアップデートされる。
+    if (building instanceof Building) building.updateFileInfo(fileInfo);
+  }
+
+  removeBuilding(fileInfo: FileInfo) {
+    // フォルダが選択されいない時は何もしない（そんなケースは存在しないはず）
+    if (
+      typeof this.rootPath === "undefined" ||
+      typeof this.rootDistrict === "undefined"
+    )
+      return;
+
+    // ルートディレクトリからのパスの配列 relativePath（最後の要素はファイル名）
+    // /a/b/c/d -> ["a", "b", "c", "d"]
+    // / -> []
+    let relativePath = fileInfo.path
+      .substring(this.rootPath.length)
+      .split("/")
+      .splice(1);
+
+    let districtName;
+    let districts = [this.rootDistrict];
+    let d = 0;
+    for (d = 0; d < relativePath.length - 1; d++) {
+      districtName = relativePath[d];
+      districts.push(districts[d].children[districtName] as District);
+    }
+
+    let buildingName = relativePath[relativePath.length - 1];
+
+    districts[d].removeChild(buildingName);
+    districts[d].updateVertices();
+    // 道を再生成
+    districts[d].generateRoutes();
   }
 }

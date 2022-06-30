@@ -2,10 +2,18 @@ import * as THREE from "three";
 
 import { Coordinate2D } from "./Road";
 
+import { extColors } from "./textureColors";
+//
+// TODO 継承を考える。
+// TODO メソッド化を考える。
+// TODO グラデーションを取り込む
+
 export type BaseBuildingSettings = {
   width: number;
   height: number;
   depth: number;
+  ext?: string;
+  filename?: string;
   bodyColor?: number;
 };
 
@@ -20,27 +28,38 @@ export type BuildingWithWindowsSettings = BaseBuildingSettings & {
   horizontalWindowNum?: number;
 };
 
+// 装飾無しビル
 export class BaseBuilding extends THREE.Group {
   constructor({
     width,
     height,
     depth,
+    filename = "",
     bodyColor = 0x8a2be2,
   }: BaseBuildingSettings) {
     super();
-    const material_body = new THREE.MeshLambertMaterial({ color: bodyColor });
+
+    const material_body = new THREE.MeshLambertMaterial({
+      color: bodyColor,
+    });
     const geometry_body = new THREE.BoxGeometry(width, height, depth);
+
     const body = new THREE.Mesh(geometry_body, material_body);
     body.position.set(0, height / 2, 0);
     this.add(body);
+    // キャッシュ削除(応急処置)
+    material_body.dispose();
+    geometry_body.dispose();
   }
 }
 
+// 縞付きビル
 export class BuildingWithStripes extends THREE.Group {
   constructor({
     width,
     height,
     depth,
+    filename = "",
     stripeNum = 6,
     bodyColor = 0x8a2be2,
     highlightColor = 0xdda0dd,
@@ -52,6 +71,7 @@ export class BuildingWithStripes extends THREE.Group {
     const material_floor = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
+    // bodyよりも少し大きめの縞を作る。
     const geometry_floor = new THREE.BoxGeometry(
       width * 1.025,
       height * 0.025,
@@ -81,6 +101,12 @@ export class BuildingWithStripes extends THREE.Group {
     );
     roof_circle.position.set(width / 10, height, 0);
     this.add(body, ...stripes, roof_circle);
+
+    // キャッシュ削除（応急処置）
+    geometry_floor.dispose();
+    geometry_roof_circle.dispose();
+    material_floor.dispose();
+    material_roof_circle.dispose();
   }
 }
 
@@ -89,6 +115,7 @@ export class BuildingWithWindows extends THREE.Group {
     width,
     height,
     depth,
+    filename = "",
     verticalWindowNum = 5,
     horizontalWindowNum = 5,
     bodyColor = 0x8a2be2,
@@ -137,14 +164,21 @@ export class BuildingWithWindows extends THREE.Group {
     }
 
     this.add(body, ...windows);
+
+    // キャッシュ削除(応急処置)
+    geometry_window_x.dispose();
+    geometry_window_z.dispose();
+    material_window.dispose();
   }
 }
 
 /*
-calculateWidthDepthFrom4CoordinateとcalculateCenterPositionFrom4Coordinateのヘルパー関数
+calculateWidthDepthFrom4Coordinate と
+calculateCenterPositionFrom4Coordinateのヘルパー関数
  */
 function sortCoordinateXZValue(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ): [number[], number[]] {
   const descendingOrder = (a: number, b: number) => {
     if (a > b) return -1;
@@ -171,7 +205,8 @@ const result1 = calculateWidthDepthFrom4Coordinate(
 */
 
 function calculateWidthDepthFrom4Coordinate(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ): { width: number; depth: number } {
   const [arrx, arrz] = sortCoordinateXZValue(coordList);
 
@@ -180,9 +215,9 @@ function calculateWidthDepthFrom4Coordinate(
     return Math.abs((arr[0] + arr[1]) / 2 - (arr[2] + arr[3]) / 2);
   };
 
-  let width = calcLength(arrx);
-  let depth = calcLength(arrz);
-  console.log(width, depth);
+  // 道と被らないように少し小さくする。
+  let width = calcLength(arrx) * 0.9;
+  let depth = calcLength(arrz) * 0.9;
 
   return { width, depth };
 }
@@ -201,7 +236,8 @@ const result = calculateCenterPositionFrom4Coordinate(
 */
 
 function calculateCenterPositionFrom4Coordinate(
-  coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D]
+  coordList: Coordinate2D[]
 ) {
   const [arrx, arrz] = sortCoordinateXZValue(coordList);
 
@@ -210,5 +246,138 @@ function calculateCenterPositionFrom4Coordinate(
   const calcCenterPosition = (arr: number[]) => {
     return arr.reduce((s, e) => s + e, 0) / 4;
   };
+
   return { x: calcCenterPosition(arrx), z: calcCenterPosition(arrz) };
+}
+
+// 4座標からビルを作成する。
+export function createBuildingFrom4Coordinate(
+  // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D],
+  coordList: Coordinate2D[],
+  height: number,
+  buildingType: "Stripe" | "Windows" | "Gradation",
+  filename?: string,
+  ext?: string,
+  bodyColor?: number,
+  highlightColor?: number
+) {
+  const { x, z } = calculateCenterPositionFrom4Coordinate(coordList);
+  const { width, depth } = calculateWidthDepthFrom4Coordinate(coordList);
+  const baseBuildingSettings: BaseBuildingSettings = {
+    width,
+    depth,
+    height,
+  };
+  let building: THREE.Group;
+  switch (buildingType) {
+    case "Stripe":
+      building = new BuildingWithStripes({
+        ...baseBuildingSettings,
+        bodyColor,
+        highlightColor,
+        filename,
+      });
+      building.position.set(x, 0, z);
+      return building;
+
+    case "Windows":
+      building = new BuildingWithWindows({
+        ...baseBuildingSettings,
+        bodyColor,
+        highlightColor,
+        filename,
+      });
+      building.position.set(x, 0, z);
+      return building;
+
+    case "Gradation":
+      building = new BuildingWithGradation({
+        ...baseBuildingSettings,
+        ext: ext || "",
+      });
+      building.position.set(x, 0, z);
+      return building;
+  }
+}
+
+// カラーを定義
+// const colors: { [name: string]: [string, string] } = {
+//   night_fade: ["#a18cd1", "#fbc2eb"],
+//   rainy_ashville: ["#fbc2eb", "#a6c1ee"],
+//   amy_crisp: ["#a6c0fe", "#f68084"],
+// };
+// const colorNames = Object.keys(colors);
+
+// マテリアルをcanvasを使って作成(textureImages使ってないです！)
+function createMaterial(
+  extColor: [string, string],
+  width: number,
+  height: number
+) {
+  // キャンバスのサイズを定義．
+  const canvasWidth = width;
+  const canvasHeight = height;
+
+  // マテリアル用の仮想DOMを作成
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const context = canvas.getContext("2d")!;
+
+  // グラデーションで塗る．
+  const color = context.createLinearGradient(0, 0, 0, canvasHeight);
+  color.addColorStop(0.0, extColor[0]);
+  color.addColorStop(1.0, extColor[1]);
+  context.fillStyle = color;
+  context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // 横線を入れる．
+  context.fillStyle = extColor[1] + "80";
+  for (let i = 0; i < Math.floor(canvasHeight) / 8; i++) {
+    context.fillRect(0, canvasHeight - (i * 8 - 4), canvasWidth, 2);
+  }
+
+  // 建物の横はcanvasから作成したテクスチャを貼る
+  const m1 = new THREE.MeshLambertMaterial({
+    map: new THREE.CanvasTexture(canvas),
+  });
+  // 建物の上側は一色にする
+  const m2 = new THREE.MeshLambertMaterial({
+    color: extColor[0],
+  });
+
+  // boxは6面なので，マテリアルの6個の配列を渡す（Three.jsはマテリアルの配列をマテリアルとして処理できる）
+  return [m1, m1, m2, m1, m1, m1];
+  // return m1;
+}
+
+// とりあえずクラスで保持。
+// 使い回しは後で追加する。
+export class BuildingWithGradation extends THREE.Group {
+  constructor({
+    width,
+    height,
+    depth,
+    ext = "",
+    filename = "",
+  }: // bodyColor = 0x8a2be2,
+  BaseBuildingSettings) {
+    super();
+
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+
+    const box = new THREE.Mesh(
+      geometry,
+      createMaterial(
+        // 色をとりあえずランダムに取得
+        // TODO :後で拡張子対応
+        // colorNames[Math.floor(Math.random() * colorNames.length)],
+        extColors[ext],
+        width,
+        height
+      )
+    );
+    box.position.set(0, height / 2, 0);
+    this.add(box);
+  }
 }

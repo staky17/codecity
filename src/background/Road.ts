@@ -1,13 +1,13 @@
 import * as THREE from "three";
 
-type BaseRoadSettings = {
+export type BaseRoadSettings = {
   width: number;
   length: number;
   color?: number;
   opacity?: number;
 };
 
-type RoadSettings = BaseRoadSettings & {
+export type RoadSettings = BaseRoadSettings & {
   radian?: number;
   highlightColor?: number;
 };
@@ -22,6 +22,8 @@ class BaseRoad extends THREE.Mesh {
       opacity: opacity,
     });
     super(geometryBaseRoad, materialBaseRoad);
+    geometryBaseRoad.dispose();
+    materialBaseRoad.dispose();
   }
 }
 
@@ -82,6 +84,9 @@ export class RoadWithCenterLine extends THREE.Group {
     this.add(road, centerline);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+
+    geometryCenterLine.dispose();
+    materialCenterLine.dispose();
   }
 }
 
@@ -90,7 +95,8 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    // color = 0xe6e6fa,
+    color = 0xb0c4de,
     highlightColor = 0xffffff,
     opacity = 1,
   }: RoadSettings) {
@@ -130,6 +136,9 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     this.add(road, dashGroup);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+
+    geometryCenterLine.dispose();
+    materialCenterLine.dispose();
   }
 }
 
@@ -155,7 +164,9 @@ export function createRoadFromStartToEnd(
   lineType: "NoLine" | "CenterLine" | "DashedCenterLine"
   // priority が追加されるかも。
 ) {
-  const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  let length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  // 道を少し伸ばして切れ目を消す。
+  length += width * 0.8;
   const rad = Math.atan2(end.x - start.x, end.z - start.z);
 
   let road: THREE.Group;
