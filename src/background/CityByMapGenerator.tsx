@@ -65,7 +65,6 @@ class MapRenderer {
     this.scene = new THREE.Scene();
     // this.scene.add(new THREE.AxesHelper(1000));
 
-    // TODO 光と格闘中 (綺麗な陰影がつかない。...)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const pointlight = new THREE.PointLight(0xffffff, 1, 50, 1.0);
     pointlight.position.set(0, 70, -500);
@@ -172,12 +171,13 @@ class MapRenderer {
       });
     }
 
+    console.log(this.buildingInfoList);
     // buildingをリストに追加
     this.buildingList = this.buildingInfoList.map((buildingInfo) =>
       createBuildingFrom4Coordinate(
         buildingInfo.coords.map((c) => c.times(this.scale)),
         // componentInfo.height || 100,
-        buildingInfo.fileInfo?.lineCount || 100,
+        buildingInfo.fileInfo?.lineCount || 100, // サイズをどうするか。
         "Gradation",
         buildingInfo.fileInfo.path,
         buildingInfo.fileInfo.ext

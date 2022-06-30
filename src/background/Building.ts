@@ -293,7 +293,7 @@ export function createBuildingFrom4Coordinate(
     case "Gradation":
       building = new BuildingWithGradation({
         ...baseBuildingSettings,
-        ext: ext || "",
+        ext: ext || "others",
       });
       building.position.set(x, 0, z);
       return building;
@@ -358,11 +358,15 @@ export class BuildingWithGradation extends THREE.Group {
     width,
     height,
     depth,
-    ext = "",
+    ext = "others", // 拡張子がないファイルはothersになるが、拡張子があるファイルの中でextColorsにないものもothersにしたい。
     filename = "",
   }: // bodyColor = 0x8a2be2,
   BaseBuildingSettings) {
     super();
+
+    // 拡張子がextCororsになければ、othersを付与
+    ext = Object.keys(extColors).includes(ext) ? ext : "others";
+    console.log(ext);
 
     const geometry = new THREE.BoxGeometry(width, height, depth);
 
@@ -379,5 +383,6 @@ export class BuildingWithGradation extends THREE.Group {
     );
     box.position.set(0, height / 2, 0);
     this.add(box);
+    geometry.dispose();
   }
 }
