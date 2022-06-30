@@ -252,7 +252,7 @@ export function createBuildingFrom4Coordinate(
   // coordList: [Coordinate2D, Coordinate2D, Coordinate2D, Coordinate2D],
   coordList: Coordinate2D[],
   height: number,
-  buildingType: "Stripe" | "Windows",
+  buildingType: "Stripe" | "Windows" | "Gradation",
   filename?: string,
   bodyColor?: number,
   highlightColor?: number
@@ -285,5 +285,88 @@ export function createBuildingFrom4Coordinate(
       });
       building.position.set(x, 0, z);
       return building;
+    case "Gradation":
+      building = new BuildingWithGradation({
+        ...baseBuildingSettings,
+      });
+      building.position.set(x, 0, z);
+      return building;
+  }
+}
+
+// カラーを定義
+const colors: { [name: string]: [string, string] } = {
+  night_fade: ["#a18cd1", "#fbc2eb"],
+  rainy_ashville: ["#fbc2eb", "#a6c1ee"],
+  amy_crisp: ["#a6c0fe", "#f68084"],
+};
+const colorNames = Object.keys(colors);
+
+// マテリアルをcanvasを使って作成(textureImages使ってないです！)
+function createMaterial(colorName: string, width: number, height: number) {
+  // キャンバスのサイズを定義．
+  const canvasWidth = width;
+  const canvasHeight = height;
+
+  // マテリアル用の仮想DOMを作成
+  const canvas = document.createElement("canvas");
+  canvas.width = canvasWidth;
+  canvas.height = canvasHeight;
+  const context = canvas.getContext("2d")!;
+
+  // グラデーションで塗る．
+  const color = context.createLinearGradient(0, 0, 0, canvasHeight);
+  color.addColorStop(0.0, colors[colorName][0]);
+  color.addColorStop(1.0, colors[colorName][1]);
+  context.fillStyle = color;
+  context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  // 横線を入れる．
+  context.fillStyle = colors[colorName][1] + "80";
+  for (let i = 0; i < Math.floor(canvasHeight) / 8; i++) {
+    context.fillRect(0, canvasHeight - (i * 8 - 4), canvasWidth, 2);
+  }
+
+  // 建物の横はcanvasから作成したテクスチャを貼る
+  const m1 = new THREE.MeshLambertMaterial({
+    map: new THREE.CanvasTexture(canvas),
+  });
+  // 建物の上側は一色にする
+  const m2 = new THREE.MeshLambertMaterial({
+    color: colors[colorName][0],
+  });
+
+  // boxは6面なので，マテリアルの6個の配列を渡す（Three.jsはマテリアルの配列をマテリアルとして処理できる）
+  return [m1, m1, m2, m1, m1, m1];
+  // return m1;
+}
+
+// とりあえずクラスで保持。
+// 使い回しは後で追加する。
+export class BuildingWithGradation extends THREE.Group {
+  constructor({
+    width,
+    height,
+    depth,
+    filename = "",
+  }: // bodyColor = 0x8a2be2,
+  BaseBuildingSettings) {
+    super();
+
+    const geometry = new THREE.BoxGeometry(width, height, depth);
+
+    const box = new THREE.Mesh(
+      geometry,
+      createMaterial(
+        // 色をとりあえずランダムに取得
+        // TODO :後で拡張子対応
+        // colorNames[Math.floor(Math.random() * colorNames.length)],
+        colorNames[1],
+        width,
+        height
+      )
+    );
+    box.position.set(0, height / 2, 0);
+    this.add(box);
   }
 }

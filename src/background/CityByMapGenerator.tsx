@@ -64,8 +64,17 @@ class MapRenderer {
     this.scale = 60;
     this.scene = new THREE.Scene();
     this.scene.add(new THREE.AxesHelper(1000));
-    this.scene.add(new THREE.AmbientLight(0xffffff, 1.0));
-    this.scene.add(new THREE.DirectionalLight(0xffffff, 0.6));
+
+    // TODO 光と格闘中 (綺麗な陰影がつかない。...)
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const pointlight = new THREE.PointLight(0xffffff, 10, 50, 1.0);
+    pointlight.position.set(-1000, 700, -1000);
+    this.scene.add(pointlight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1);
+    this.scene.add(directionalLight);
+    const directionalLightFromRight = new THREE.DirectionalLight(0xffffff, 0.1);
+    directionalLightFromRight.position.set(-1000, 1, -1000);
+    this.scene.add(directionalLightFromRight);
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvas,
@@ -113,6 +122,7 @@ class MapRenderer {
       let absVertices = node.vertices.map((vertex) => {
         return vertex.add(absPosition); // vertex + absPosition
       });
+      THREE.PointLight;
 
       // nodeがDistrictの時は、Routeの取得と座標情報の更新と、子nodeの追加
       if (node instanceof District) {
@@ -165,20 +175,20 @@ class MapRenderer {
     // buildingをリストに追加
     this.buildingList = this.buildingInfoList.map((buildingInfo) =>
       createBuildingFrom4Coordinate(
-        buildingInfo.coords.map((c) => c.times(60)), // TODO Scaleを変数に
+        buildingInfo.coords.map((c) => c.times(this.scale)), // TODO Scaleを変数に
         // componentInfo.height || 100,
         buildingInfo.fileInfo?.lineCount || 100,
-        "Windows"
+        "Gradation"
       )
     );
 
     // roadを追加
     this.roadList = this.roadInfoList.map((roadInfo) =>
       createRoadFromStartToEnd(
-        roadInfo.coords[0].times(60), // TODO Scaleを変数に
-        roadInfo.coords[1].times(60), // TODO Scaleを変数に
+        roadInfo.coords[0].times(this.scale), // TODO Scaleを変数に
+        roadInfo.coords[1].times(this.scale), // TODO Scaleを変数に
         8,
-        "NoLine"
+        "DashedCenterLine"
       )
     );
 
@@ -196,15 +206,15 @@ class MapRenderer {
     // 道のx座標とy座標を取得
     for (let roadInfo of this.roadInfoList) {
       roadInfo.coords.map((c) => {
-        xcoords.push(c.x * 60);
-        zcoords.push(c.z * 60);
+        xcoords.push(c.x * this.scale);
+        zcoords.push(c.z * this.scale);
       });
     }
     //　ビルの4点座標を取得
     for (let buildingInfo of this.buildingInfoList) {
       buildingInfo.coords.map((c) => {
-        xcoords.push(c.x * 60);
-        zcoords.push(c.z * 60);
+        xcoords.push(c.x * this.scale);
+        zcoords.push(c.z * this.scale);
       });
     }
 
@@ -215,7 +225,7 @@ class MapRenderer {
 
     // TODO 後でカメラ位置の調整をする。
     // TODO 後で高さも考える。
-    this.camera.position.set(xmin - 500, 1000, zmin - 500);
+    this.camera.position.set(xmin - 200, 600, zmin - 200);
     this.camera.lookAt(new THREE.Vector3(xmax, 0, zmax));
   } // cameraPositioning End
 
