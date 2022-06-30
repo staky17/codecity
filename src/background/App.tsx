@@ -11,34 +11,42 @@ export const App = () => {
   useEffect(() => {
     // フォルダを選択した時に実行される
     window.myAPI.on("reset", (_: Electron.IpcRendererEvent, path: string) => {
-      console.log("街を初期化します", path);
-      // mapGeneratorを初期化する
-      mapGenerator.initialize(path);
+      setTimeout(() => {
+        console.log("街を初期化します", path);
+        // mapGeneratorを初期化する
+        mapGenerator.initialize(path);
+      }, 1);
     });
 
     // ファイルが1つ追加された時に実行される（フォルダが増えてもこれは実行されません）
     window.myAPI.on(
       "addFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
-        console.log("建物を追加します", fileInfo);
-        // ファイル情報を追加して，建物を増やす
-        mapGenerator.addBuilding(fileInfo);
+        setTimeout(() => {
+          console.log("建物を追加します", fileInfo);
+          // ファイル情報を追加して，建物を増やす
+          mapGenerator.addBuilding(fileInfo);
+        }, 1);
       }
     );
 
     window.myAPI.on(
       "updateFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
-        console.log("建物を更新します", fileInfo);
-        mapGenerator.updateBuilding(fileInfo);
+        setTimeout(() => {
+          console.log("建物を更新します", fileInfo);
+          mapGenerator.updateBuilding(fileInfo);
+        }, 1);
       }
     );
 
     window.myAPI.on(
       "removeFile",
       (_: Electron.IpcRendererEvent, fileInfo: FileInfo) => {
-        console.log("建物を削除します", fileInfo);
-        mapGenerator.removeBuilding(fileInfo);
+        setTimeout(() => {
+          console.log("建物を削除します", fileInfo);
+          mapGenerator.removeBuilding(fileInfo);
+        }, 1);
       }
     );
   }, []);
