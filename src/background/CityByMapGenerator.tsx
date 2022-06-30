@@ -1,9 +1,12 @@
+import moment from "moment";
+
 import * as THREE from "three";
 
 import React, { useEffect, useRef, useState } from "react";
 import { createBuildingFrom4Coordinate } from "./Building";
 import { Vector2d, MapGenerator, District, Building } from "./mapGenerator";
 import { createRoadFromStartToEnd } from "./Road";
+import { createMessage } from "./Message";
 
 // 親からmapGeneratorを受け取るための型定義
 type Props = {
@@ -46,6 +49,14 @@ type BuildingInfo = {
   coords: Array<Vector2d>;
   fileInfo: FileInfo;
 };
+type MessageInfo = Message & {
+  coords: Vector2d;
+  active: Boolean;
+  startAt: moment.Moment | null;
+  endAt: moment.Moment | null;
+  from: District | Building;
+  sprite: THREE.Sprite | null;
+};
 
 class MapRenderer {
   public renderer: THREE.WebGLRenderer;
@@ -56,6 +67,7 @@ class MapRenderer {
   buildingInfoList: BuildingInfo[];
   buildingList: THREE.Group[];
   roadList: THREE.Group[];
+  messageInfoDict: { [id: string]: MessageInfo };
   mapGenerator: MapGenerator;
 
   constructor(canvas: HTMLCanvasElement, mapGenerator: MapGenerator) {
@@ -99,12 +111,15 @@ class MapRenderer {
     this.buildingInfoList = [];
     this.roadInfoList = [];
 
+    // 街や地区からのメッセージ
+    this.messageInfoDict = {};
+
     // 後でthis.sceneから削除したいので、オブジェクトのリストを保持しておく。
     this.buildingList = [];
     this.roadList = [];
   }
 
-  // MapGeneratorから道とビルの情報を取得
+  // MapGeneratorから道とビルとメッセージの情報を取得
   extractMapInfo() {
     //　レンダリングごとに増えてしまうのを防ぐため初期化
     this.roadInfoList = [];
@@ -151,6 +166,28 @@ class MapRenderer {
           coords: absVertices,
         });
       }
+
+      // nodeにメッセージがあればそれを獲得する．メッセージが期限切れなら消しておく
+      for (let id of Object.keys(node.messages)) {
+        if (typeof this.messageInfoDict[id] === "undefined")
+          this.messageInfoDict[id] = {
+            ...node.messages[id],
+            coords: absPosition,
+            active: false,
+            startAt: null,
+            endAt: null,
+            from: node,
+            sprite: null,
+          };
+        // 期限切れのメッセージは削除する
+        let exp = this.messageInfoDict[id].endAt;
+        if (exp !== null && exp.isBefore(moment())) {
+          this.messageInfoDict[id].from.removeMessage(id);
+          let sprite = this.messageInfoDict[id].sprite;
+          if (sprite !== null) this.scene.remove(sprite);
+          delete this.messageInfoDict[id];
+        }
+      }
     }
   }
 
@@ -196,6 +233,39 @@ class MapRenderer {
 
     if (this.buildingList.length) this.scene.add(...this.buildingList);
     if (this.roadList.length) this.scene.add(...this.roadList);
+
+    // アクティブなメッセージを確認
+    const _activeMessageInfoList = Object.keys(this.messageInfoDict)
+      .map((id) => this.messageInfoDict[id])
+      .filter(
+        (messageInfo) =>
+          messageInfo.active === true && messageInfo.endAt?.isAfter(moment())
+      );
+
+    // アクティブなメッセージが3つ以下なら，非アクティブなメッセージをランダムにアクティブにする
+    for (let i = 0; i < 3 - _activeMessageInfoList.length; i++) {
+      const inactiveMessageInfoList = Object.keys(this.messageInfoDict)
+        .map((id) => this.messageInfoDict[id])
+        .filter((messageInfo) => !messageInfo.active);
+      if (inactiveMessageInfoList.length === 0) break;
+      const newActiveMessageInfo =
+        inactiveMessageInfoList[
+          Math.floor(Math.random() * inactiveMessageInfoList.length)
+        ];
+      newActiveMessageInfo.active = true;
+      newActiveMessageInfo.startAt = moment();
+      newActiveMessageInfo.endAt = moment().add(5, "seconds");
+
+      let sprite = createMessage(newActiveMessageInfo, 0);
+      sprite.scale.set(3 * this.scale, 1 * this.scale, 3 * this.scale);
+      sprite.position.set(
+        newActiveMessageInfo.coords.x * this.scale,
+        3 * this.scale,
+        newActiveMessageInfo.coords.z * this.scale
+      );
+      newActiveMessageInfo.sprite = sprite;
+      this.scene.add(sprite);
+    }
   } // updateComponent End
 
   // RoadInfoList, BuildingInfoListから座標を集める
@@ -236,8 +306,8 @@ class MapRenderer {
   } // cameraPositioning End
 
   render(): void {
-    console.log("render");
-    console.log(this.scene.children);
+    // console.log("render");
+    // console.log(this.scene.children);
 
     // MapGeneratorから道(this.roadInfoList)とビル(this.buildingInfoList)の情報を取得
     this.extractMapInfo();

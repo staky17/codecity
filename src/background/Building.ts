@@ -372,7 +372,7 @@ export class BuildingWithGradation extends THREE.Group {
         // 色をとりあえずランダムに取得
         // TODO :後で拡張子対応
         // colorNames[Math.floor(Math.random() * colorNames.length)],
-        extColors[ext],
+        typeof extColors[ext] !== "undefined" ? extColors[ext] : extColors[""],
         width,
         height
       )

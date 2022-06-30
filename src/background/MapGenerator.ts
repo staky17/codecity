@@ -346,6 +346,9 @@ class MapObject {
   public debugMarkers: Array<{ point: Vector2d; color?: string }>;
   public debugLines: Array<{ start: Vector2d; end: Vector2d; color?: string }>;
 
+  // 街からメッセージを拾う
+  public messages: { [id: string]: Message };
+
   constructor(name: string, vertices: Array<Vector2d>, basePoint: Vector2d) {
     this.name = name;
     this.vertices = vertices;
@@ -355,6 +358,7 @@ class MapObject {
     // デバッグ用にマーカーとライン引けるようにした
     this.debugMarkers = [];
     this.debugLines = [];
+    this.messages = {};
   }
 
   area(): number {
@@ -400,6 +404,18 @@ class MapObject {
       this.base = this.base.add(this.force);
       this.force.times(alpha);
     }
+  }
+
+  pushMessage(message: Message): void {
+    let id = "";
+    let alphabets = "abcdefghijklmnopqrstuvwxyz0123456789";
+    for (let _ = 0; _ < 20; _++) {
+      id += alphabets.charAt(Math.floor(Math.random() * alphabets.length));
+    }
+    this.messages[id] = message;
+  }
+  removeMessage(id: string) {
+    delete this.messages[id];
   }
 }
 
@@ -778,6 +794,9 @@ export class MapGenerator {
       new Vector2d(Math.random() - 0.5, Math.random() - 0.5),
       fileInfo
     );
+    districts[d].children[buildingName].pushMessage({
+      text: `${buildingName}ビルが竣工しました!!`,
+    });
 
     // rootから新しく建物を追加したdistrictまでを，逆順でオプティマイズする
     // [rootDistrict, aDistrict, bDistrict, cDistrict]
@@ -823,6 +842,9 @@ export class MapGenerator {
     let building = districts[d].children[buildingName];
     // 行数などがアップデートされる。
     if (building instanceof Building) building.updateFileInfo(fileInfo);
+    building.pushMessage({
+      text: `${buildingName}ビルが改築しました!!`,
+    });
   }
 
   removeBuilding(fileInfo: FileInfo) {
@@ -855,5 +877,8 @@ export class MapGenerator {
     districts[d].updateVertices();
     // 道を再生成
     districts[d].generateRoutes();
+    districts[d].pushMessage({
+      text: `${buildingName}ビルは取り壊されました...`,
+    });
   }
 }
