@@ -5,7 +5,6 @@ import React, { useEffect } from "react";
 import { bigCity } from "./cityScape";
 import { createBuildingFrom4Coordinate } from "./Building";
 import { Vector2d, MapGenerator, District, Building } from "./mapGenerator";
-import { ModuleResolutionKind } from "typescript";
 
 export const City = ({ mapGenerator }: { mapGenerator: MapGenerator }) => {
   const createBox = () => {

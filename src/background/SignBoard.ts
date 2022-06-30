@@ -1,34 +1,103 @@
-// import * as THREE from "three";
-// import { FontLoader } from "three/examples/jsm/loaders/FontLoader.js";
-// import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
+import * as THREE from "three";
+
+export type SignBoardType = {
+  filename: string;
+  signBoardColor: string;
+  width: number;
+  height: number;
+  depth: number;
+  XPosition: number;
+  YPosition: number;
+  ZPosition: number;
+};
 
 // Under Construction
-// export class SignBoard extends THREE.Group {
-//   constructor(filename: string) {
-//     super();
+export class SignBoard extends THREE.Group {
+  constructor({
+    filename,
+    signBoardColor = "#ffffff",
+    width,
+    height,
+    depth,
+    XPosition,
+    YPosition,
+    ZPosition,
+  }: SignBoardType) {
+    super();
 
-//     const font = fontload();
+    // 背景のGeometry
+    const geometry_background = new THREE.BoxGeometry(width, height, depth);
 
-//     // テキストメッシュ
-//     const textMesh = new THREE.Mesh(
-//       new TextGeometry(`TextGeometry Scene`, {
-//         font: font, // フォントを指定 (FontLoaderで読み込んだjson形式のフォント)
-//         size: 10, // 文字のサイズを指定
-//         height: 1, // 文字の厚さを指定
-//       }),
-//       new THREE.MeshBasicMaterial({
-//         color: `#ccc`, // 文字の色
-//       })
-//     );
-//     textMesh.position.set(-0.75, 0, 0); // Meshの位置を設定
-//     textMesh.scale.set(0.01, 0.01, 0.01);
-//   }
-// }
+    // canvasの縦横(小さすぎるとぼやける)
+    const canvasWidth = 500;
+    const canvasHeight = 50;
 
-// async function fontload() {
-//   const fontLoader = new FontLoader();
-//   const font = await fontLoader.load(
-//     `/fonts/droid_sans_mono_regular.typeface.json`
-//   );
-//   return font;
-// }
+    const canvasForTexture = createCanvasForTexture(
+      canvasWidth,
+      canvasHeight,
+      filename,
+      signBoardColor,
+      40
+    );
+    if (canvasForTexture !== undefined) {
+      const canvasTexture = new THREE.CanvasTexture(canvasForTexture);
+      this.createSignBoard(geometry_background, canvasTexture, {
+        x: XPosition,
+        y: YPosition,
+        z: ZPosition,
+      });
+    }
+  }
+
+  // boxGeometryのメッシュを作成
+  private createSignBoard = (
+    geometry_background: THREE.BoxGeometry,
+    texture: THREE.CanvasTexture,
+    position: { x: number; y: number; z: number }
+  ) => {
+    const material = [
+      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial(),
+      new THREE.MeshBasicMaterial({ map: texture }),
+    ];
+
+    const signBoardMesh = new THREE.Mesh(geometry_background, material);
+    signBoardMesh.position.set(position.x, position.y, position.z);
+    this.add(signBoardMesh);
+  };
+}
+
+const createCanvasForTexture = (
+  canvasWidth: number,
+  canvasHeight: number,
+  text: string,
+  signBoardColor: string,
+  fontSize: number
+) => {
+  // 貼り付けるcanvasを作成。
+  const canvasForText = document.createElement("canvas");
+  const ctx = canvasForText.getContext("2d");
+  if (ctx === null) {
+    return;
+  }
+
+  ctx.canvas.width = canvasWidth;
+  ctx.canvas.height = canvasHeight;
+  // 看板の背景の設定
+  ctx.fillStyle = signBoardColor;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  // 看板テキストの設定
+  ctx.fillStyle = "black";
+  ctx.font = `${fontSize}px serif`;
+  ctx.fillText(
+    text,
+    // x方向の余白/2をx方向開始時の始点とすることで、横方向の中央揃えをしている。
+    (canvasWidth - ctx.measureText(text).width) / 2,
+    // y方向のcanvasの中央に文字の高さの半分を加えることで、縦方向の中央揃えをしている。
+    canvasHeight / 2 + ctx.measureText(text).actualBoundingBoxAscent / 2
+  );
+  return canvasForText;
+};
