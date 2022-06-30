@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CityByMapGenerator } from "./CityByMapGenerator";
-import { Building, District, MapGenerator, Vector2d } from "./mapGenerator";
+import { MapGenerator } from "./mapGenerator";
 import GeometryMapViewer from "./GeometryMapViewer";
+import ThreeDMapViewer from "./ThreeDMapViewer";
 
 export const App = () => {
   // mapGeneratorはマップ情報を保持して，位置を変化させ続けるクラス
@@ -44,14 +44,15 @@ export const App = () => {
     );
   }, []);
 
-  return (
-    <>
-      {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
-      <CityByMapGenerator
-        mapGenerator={mapGenerator}
-        WindowWidth={1500}
-        WindowHeight={1500}
-      />
-    </>
-  );
+  // return (
+  //   <>
+  //     {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
+  //     {/*<CityByMapGenerator
+  //       mapGenerator={mapGenerator}
+  //       WindowWidth={1500}
+  //       WindowHeight={1500}/>*/}
+  //     {<ThreeDMapViewer mapGenerator={mapGenerator}></ThreeDMapViewer>}
+  //   </>
+  // );
+  return <ThreeDMapViewer mapGenerator={mapGenerator}></ThreeDMapViewer>;
 };
