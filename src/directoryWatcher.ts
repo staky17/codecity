@@ -22,7 +22,8 @@ class DirectoryWatcher {
     this.targetPath = path;
 
     this.watcher = chokidar.watch(path, {
-      ignored: /[\/\\]\./,
+      // ignored: /.*node_modules.*/,
+      ignored: (mypath) => mypath.includes("node_modules"),
       persistent: true,
       usePolling: false,
       followSymlinks: false,

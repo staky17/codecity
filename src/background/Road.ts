@@ -95,7 +95,8 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    // color = 0xe6e6fa,
+    color = 0xb0c4de,
     highlightColor = 0xffffff,
     opacity = 1,
   }: RoadSettings) {

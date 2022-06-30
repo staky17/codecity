@@ -63,18 +63,19 @@ class MapRenderer {
     // MapGeneratorの座標を拡大する倍率
     this.scale = 60;
     this.scene = new THREE.Scene();
-    this.scene.add(new THREE.AxesHelper(1000));
+    // this.scene.add(new THREE.AxesHelper(1000));
 
     // TODO 光と格闘中 (綺麗な陰影がつかない。...)
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-    const pointlight = new THREE.PointLight(0xffffff, 10, 50, 1.0);
-    pointlight.position.set(-1000, 700, -1000);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const pointlight = new THREE.PointLight(0xffffff, 1, 50, 1.0);
+    pointlight.position.set(0, 70, -500);
     this.scene.add(pointlight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 0.1);
     this.scene.add(directionalLight);
-    const directionalLightFromRight = new THREE.DirectionalLight(0xffffff, 0.1);
-    directionalLightFromRight.position.set(-1000, 1, -1000);
-    this.scene.add(directionalLightFromRight);
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.2);
+    directionalLight2.position.set(-1, 0, 0);
+    // directionalLight2.lookAt(new THREE.Vector3(0, 0, 0));
+    this.scene.add(directionalLight2);
 
     this.renderer = new THREE.WebGLRenderer({
       canvas: canvas,
@@ -122,7 +123,6 @@ class MapRenderer {
       let absVertices = node.vertices.map((vertex) => {
         return vertex.add(absPosition); // vertex + absPosition
       });
-      THREE.PointLight;
 
       // nodeがDistrictの時は、Routeの取得と座標情報の更新と、子nodeの追加
       if (node instanceof District) {
@@ -175,18 +175,20 @@ class MapRenderer {
     // buildingをリストに追加
     this.buildingList = this.buildingInfoList.map((buildingInfo) =>
       createBuildingFrom4Coordinate(
-        buildingInfo.coords.map((c) => c.times(this.scale)), // TODO Scaleを変数に
+        buildingInfo.coords.map((c) => c.times(this.scale)),
         // componentInfo.height || 100,
         buildingInfo.fileInfo?.lineCount || 100,
-        "Gradation"
+        "Gradation",
+        buildingInfo.fileInfo.path,
+        buildingInfo.fileInfo.ext
       )
     );
 
     // roadを追加
     this.roadList = this.roadInfoList.map((roadInfo) =>
       createRoadFromStartToEnd(
-        roadInfo.coords[0].times(this.scale), // TODO Scaleを変数に
-        roadInfo.coords[1].times(this.scale), // TODO Scaleを変数に
+        roadInfo.coords[0].times(this.scale),
+        roadInfo.coords[1].times(this.scale),
         8,
         "DashedCenterLine"
       )
@@ -201,31 +203,35 @@ class MapRenderer {
   private cameraPositioning() {
     const xcoords: number[] = [];
     const zcoords: number[] = [];
+    const ycoords: number[] = [];
 
     // x座標とy座標のリストを生成
     // 道のx座標とy座標を取得
     for (let roadInfo of this.roadInfoList) {
-      roadInfo.coords.map((c) => {
+      roadInfo.coords.forEach((c) => {
         xcoords.push(c.x * this.scale);
         zcoords.push(c.z * this.scale);
       });
     }
     //　ビルの4点座標を取得
     for (let buildingInfo of this.buildingInfoList) {
-      buildingInfo.coords.map((c) => {
+      buildingInfo.coords.forEach((c) => {
         xcoords.push(c.x * this.scale);
         zcoords.push(c.z * this.scale);
       });
+      ycoords.push(buildingInfo.fileInfo.lineCount || 100);
     }
 
+    // 描画空間のx,zの最大値、最小値を取得
     const xmax = Math.max(...xcoords);
     const xmin = Math.min(...xcoords);
     const zmax = Math.max(...zcoords);
     const zmin = Math.min(...zcoords);
+    // 描画空間の高さの最大値を取得
+    const ymax = Math.max(...ycoords);
 
     // TODO 後でカメラ位置の調整をする。
-    // TODO 後で高さも考える。
-    this.camera.position.set(xmin - 200, 600, zmin - 200);
+    this.camera.position.set(xmin - 200, ymax + 200, zmin - 200);
     this.camera.lookAt(new THREE.Vector3(xmax, 0, zmax));
   } // cameraPositioning End
 
