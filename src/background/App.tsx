@@ -25,7 +25,6 @@ export const App = () => {
         // ファイル情報を追加して，建物を増やす
         mapGenerator.addBuilding(fileInfo);
         fileInfoList.push(fileInfo);
-        console.log(fileInfoList);
       }
     );
 
@@ -47,11 +46,7 @@ export const App = () => {
   return (
     <>
       {/* <GeometryMapViewer mapGenerator={mapGenerator}></GeometryMapViewer> */}
-      <CityByMapGenerator
-        mapGenerator={mapGenerator}
-        WindowWidth={1500}
-        WindowHeight={1500}
-      />
+      <CityByMapGenerator mapGenerator={mapGenerator} />
     </>
   );
 };

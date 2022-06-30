@@ -630,7 +630,6 @@ export class District extends MapObject {
             _routeCandidate.active = false;
         }
         routeCandidate.active = true;
-        console.log(routeCandidate);
       }
     }
 
@@ -665,7 +664,6 @@ export class District extends MapObject {
             _routeCandidate.active = false;
         }
         routeCandidate.active = true;
-        console.log(routeCandidate);
       }
     }
 
