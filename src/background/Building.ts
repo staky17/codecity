@@ -128,7 +128,7 @@ export function createBuildingFrom4Coordinate(
     ...baseBuildingSettings,
     ext: ext || "others",
   });
-  building.position.set(x, 0, z);
+  building.position.set(x, height / 2, z);
   return building;
 }
 

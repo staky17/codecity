@@ -241,7 +241,7 @@ class MapRenderer {
     const ymax = Math.max(...ycoords);
 
     // カメラ位置の調整
-    this.camera.position.set(xmin - 200, ymax + 200, zmin - 200);
+    this.camera.position.set(xmin - 200, ymax + 25, zmin - 200);
     this.camera.lookAt(new THREE.Vector3(xmax, 0, zmax));
   } // cameraPositioning End
 
