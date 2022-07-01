@@ -11,3 +11,7 @@ interface FileInfo {
 interface FileInfoDict {
   [path: string]: FileInfo;
 }
+
+interface Message {
+  text: string;
+}
