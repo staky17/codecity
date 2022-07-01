@@ -195,6 +195,17 @@ class MapRenderer {
     }
   }
 
+  // ビルの高さのルールを一元管理
+  // updateSceneObjectと、cameraPositioningで使用。
+  private heightRule(lines: number | null) {
+    lines = lines || 0;
+    // 最低25の高さを与える（ペシャンコ対策)
+    let height = Math.max(lines, 25);
+    // 500を超えると増分にログをつける。
+    if (height > 500) height = 500 + Math.log(height - 500);
+    return height;
+  }
+
   // シーンに道とビルの追加
   private updateSceneObject() {
     // Sceneのbuildingがある場合に削除;
@@ -217,11 +228,7 @@ class MapRenderer {
     this.buildingList = this.buildingInfoList.map((buildingInfo) => {
       const coords = buildingInfo.coords.map((c) => c.times(this.scale));
       // 画像などの時はライン数０
-      const lines = buildingInfo.fileInfo?.lineCount || 0;
-      // 最低25の高さを与える（ペシャンコ対策)
-      let height = Math.max(lines, 25);
-      // 500を超えると増分にログをつける。
-      if (height > 500) height = 500 + Math.log(height - 500);
+      const height = this.heightRule(buildingInfo.fileInfo?.lineCount);
 
       return createBuildingFrom4Coordinate(
         coords,
@@ -293,13 +300,13 @@ class MapRenderer {
         zcoords.push(c.z * this.scale);
       });
     }
-    //　ビルの4点座標を取得
+    //　ビルの4点座標と高さ取得
     for (let buildingInfo of this.buildingInfoList) {
       buildingInfo.coords.forEach((c) => {
         xcoords.push(c.x * this.scale);
         zcoords.push(c.z * this.scale);
       });
-      ycoords.push(buildingInfo.fileInfo.lineCount || 100);
+      ycoords.push(this.heightRule(buildingInfo.fileInfo?.lineCount));
     }
 
     // 描画空間のx,zの最大値、最小値を取得
