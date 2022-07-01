@@ -5,7 +5,6 @@ export type BaseRoadSettings = {
   width: number;
   length: number;
   color?: number;
-  opacity?: number;
 };
 
 export type RoadSettings = BaseRoadSettings & {
@@ -15,12 +14,11 @@ export type RoadSettings = BaseRoadSettings & {
 
 // No rotate Plane
 class BaseRoad extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  constructor({ width, length, color, opacity }: BaseRoadSettings) {
+  constructor({ width, length, color }: BaseRoadSettings) {
     const geometryBaseRoad = new THREE.PlaneGeometry(width, length);
     const materialBaseRoad = new THREE.MeshLambertMaterial({
       color: color,
       transparent: true,
-      opacity: opacity,
     });
     super(geometryBaseRoad, materialBaseRoad);
   }
@@ -30,20 +28,14 @@ class BaseRoad extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
 export class Road extends THREE.Group {
   private road: BaseRoad;
 
-  constructor({
-    width,
-    length,
-    radian = 0,
-    color = 0xb0c4de,
-    opacity = 1,
-  }: RoadSettings) {
+  constructor({ width, length, radian = 0, color = 0xb0c4de }: RoadSettings) {
     super();
     console.assert(
       -Math.PI * 2 < radian && radian < Math.PI * 2,
       "Use radian!"
     );
 
-    this.road = new BaseRoad({ width, length: length, color, opacity });
+    this.road = new BaseRoad({ width, length: length, color });
 
     this.add(this.road);
     this.rotation.x = -Math.PI / 2; // Don't Change

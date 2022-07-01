@@ -176,7 +176,6 @@ class MapRenderer {
       });
     }
 
-    // console.log(this.buildingInfoList);
     // buildingをリストに追加
     this.buildingList = this.buildingInfoList.map((buildingInfo) => {
       const coords = buildingInfo.coords.map((c) => c.times(this.scale));
@@ -247,7 +246,6 @@ class MapRenderer {
   } // cameraPositioning End
 
   render(): void {
-    console.log("render");
     // MapGeneratorから道(this.roadInfoList)とビル(this.buildingInfoList)の情報を取得
     this.extractMapInfo();
     // this.sceneに道とビルの追加

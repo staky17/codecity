@@ -26,7 +26,6 @@ export class BuildingWithGradation extends THREE.Mesh<
   }: BaseBuildingSettings) {
     // 拡張子がextCororsになければ、othersを付与
     ext = Object.keys(extColors).includes(ext) ? ext : "others";
-    console.log(ext);
 
     const geometry = new THREE.BoxGeometry(width, height, depth);
     const material = createMaterial(extColors[ext], width, height);
