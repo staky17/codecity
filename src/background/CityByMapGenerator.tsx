@@ -277,7 +277,8 @@ class MapRenderer {
       sprite.scale.set(3 * this.scale, 1 * this.scale, 3 * this.scale);
       sprite.position.set(
         newActiveMessageInfo.coords.x * this.scale,
-        3 * this.scale,
+        this.heightRule(newActiveMessageInfo.from.getLineCount()) +
+          0.5 * this.scale,
         newActiveMessageInfo.coords.z * this.scale
       );
       newActiveMessageInfo.sprite = sprite;

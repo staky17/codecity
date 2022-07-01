@@ -454,6 +454,17 @@ export class District extends MapObject {
     return center;
   }
 
+  getLineCount(children?: Array<District | Building>): number {
+    children = children || this.getChildrenAsList();
+
+    let maxLineCount = 0;
+    let lineCount = 0;
+    for (let child of children) {
+      lineCount = child.getLineCount();
+      if (maxLineCount < lineCount) maxLineCount = lineCount;
+    }
+    return lineCount;
+  }
   optimize(): void {
     const children = this.getChildrenAsList();
 
@@ -731,6 +742,9 @@ export class Building extends MapObject {
   }
   updateFileInfo(fileInfo: FileInfo) {
     this.fileInfo = fileInfo;
+  }
+  getLineCount(): number {
+    return this.fileInfo.lineCount || 0;
   }
 }
 
