@@ -3,7 +3,12 @@ import * as THREE from "three";
 import React, { useEffect, useRef, useState } from "react";
 import { createBuildingFrom4Coordinate } from "./Building";
 import { Vector2d, MapGenerator, District, Building } from "./mapGenerator";
-import { createRoadFromStartToEnd } from "./Road";
+import {
+  createRoadFromStartToEnd,
+  Road,
+  RoadWithCenterLine,
+  RoadWithDashedCenterLine,
+} from "./Road";
 
 // 親からmapGeneratorを受け取るための型定義
 type Props = {
@@ -54,8 +59,8 @@ class MapRenderer {
   scale: number;
   roadInfoList: RoadInfo[];
   buildingInfoList: BuildingInfo[];
-  buildingList: THREE.Group[];
-  roadList: THREE.Group[];
+  buildingList: THREE.Mesh<THREE.BufferGeometry, THREE.Material[]>[];
+  roadList: Array<Road | RoadWithCenterLine | RoadWithDashedCenterLine>;
   mapGenerator: MapGenerator;
 
   constructor(canvas: HTMLCanvasElement, mapGenerator: MapGenerator) {
@@ -153,21 +158,21 @@ class MapRenderer {
     }
   }
 
-  // TODO 後でグラデーションを取り込む時に変更が起こる。
   // シーンに道とビルの追加
   private updateSceneObject() {
     // Sceneのbuildingがある場合に削除;
     if (this.buildingList.length) {
       this.scene.remove(...this.buildingList);
       this.buildingList.map((b) => {
-        b.clear();
+        b.geometry.dispose();
+        b.material.forEach((m) => m.dispose());
       });
     }
     //　Sceneのroadがある時に削除
     if (this.roadList.length) {
       this.scene.remove(...this.roadList);
-      this.buildingList.map((road) => {
-        road.clear();
+      this.roadList.map((road) => {
+        road.dispose();
       });
     }
 
@@ -184,8 +189,7 @@ class MapRenderer {
 
       return createBuildingFrom4Coordinate(
         coords,
-        height, // サイズをどうするか。
-        "Gradation",
+        height,
         buildingInfo.fileInfo.path,
         buildingInfo.fileInfo.ext
       );
@@ -237,15 +241,13 @@ class MapRenderer {
     // 描画空間の高さの最大値を取得
     const ymax = Math.max(...ycoords);
 
-    // TODO 後でカメラ位置の調整をする。
+    // カメラ位置の調整
     this.camera.position.set(xmin - 200, ymax + 200, zmin - 200);
     this.camera.lookAt(new THREE.Vector3(xmax, 0, zmax));
   } // cameraPositioning End
 
   render(): void {
     console.log("render");
-    // console.log(this.scene.children);
-
     // MapGeneratorから道(this.roadInfoList)とビル(this.buildingInfoList)の情報を取得
     this.extractMapInfo();
     // this.sceneに道とビルの追加
