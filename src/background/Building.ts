@@ -1,3 +1,4 @@
+import { result } from "lodash";
 import * as THREE from "three";
 
 import { Coordinate2D } from "./Road";
@@ -300,14 +301,6 @@ export function createBuildingFrom4Coordinate(
   }
 }
 
-// カラーを定義
-// const colors: { [name: string]: [string, string] } = {
-//   night_fade: ["#a18cd1", "#fbc2eb"],
-//   rainy_ashville: ["#fbc2eb", "#a6c1ee"],
-//   amy_crisp: ["#a6c0fe", "#f68084"],
-// };
-// const colorNames = Object.keys(colors);
-
 // マテリアルをcanvasを使って作成(textureImages使ってないです！)
 function createMaterial(
   extColor: [string, string],
@@ -319,7 +312,7 @@ function createMaterial(
   const canvasHeight = height;
 
   // マテリアル用の仮想DOMを作成
-  const canvas = document.createElement("canvas");
+  let canvas = document.createElement("canvas");
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   const context = canvas.getContext("2d")!;
@@ -336,19 +329,24 @@ function createMaterial(
   for (let i = 0; i < Math.floor(canvasHeight) / 8; i++) {
     context.fillRect(0, canvasHeight - (i * 8 - 4), canvasWidth, 2);
   }
+  const texture = new THREE.CanvasTexture(canvas);
 
   // 建物の横はcanvasから作成したテクスチャを貼る
   const m1 = new THREE.MeshLambertMaterial({
-    map: new THREE.CanvasTexture(canvas),
+    map: texture,
   });
   // 建物の上側は一色にする
   const m2 = new THREE.MeshLambertMaterial({
     color: extColor[0],
   });
 
+  // 応急処置
+  texture.dispose();
+  m1.dispose();
+  m2.dispose();
+  canvas.remove();
   // boxは6面なので，マテリアルの6個の配列を渡す（Three.jsはマテリアルの配列をマテリアルとして処理できる）
   return [m1, m1, m2, m1, m1, m1];
-  // return m1;
 }
 
 // とりあえずクラスで保持。

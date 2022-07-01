@@ -88,7 +88,7 @@ class MapRenderer {
       75,
       window.innerWidth / window.innerHeight,
       100,
-      10000
+      2000
     );
     // cameraの初期設定
     this.camera.position.set(1000, 1000, 1000);
@@ -171,18 +171,25 @@ class MapRenderer {
       });
     }
 
-    console.log(this.buildingInfoList);
+    // console.log(this.buildingInfoList);
     // buildingをリストに追加
-    this.buildingList = this.buildingInfoList.map((buildingInfo) =>
-      createBuildingFrom4Coordinate(
-        buildingInfo.coords.map((c) => c.times(this.scale)),
-        // componentInfo.height || 100,
-        buildingInfo.fileInfo?.lineCount || 100, // サイズをどうするか。
+    this.buildingList = this.buildingInfoList.map((buildingInfo) => {
+      const coords = buildingInfo.coords.map((c) => c.times(this.scale));
+      // 画像などの時はライン数０
+      const lines = buildingInfo.fileInfo?.lineCount || 0;
+      // 最低25の高さを与える（ペシャンコ対策)
+      let height = Math.max(lines, 25);
+      // 500を超えると増分にログをつける。
+      if (height > 500) height = 500 + Math.log(height - 500);
+
+      return createBuildingFrom4Coordinate(
+        coords,
+        height, // サイズをどうするか。
         "Gradation",
         buildingInfo.fileInfo.path,
         buildingInfo.fileInfo.ext
-      )
-    );
+      );
+    });
 
     // roadを追加
     this.roadList = this.roadInfoList.map((roadInfo) =>
@@ -237,7 +244,7 @@ class MapRenderer {
 
   render(): void {
     console.log("render");
-    console.log(this.scene.children);
+    // console.log(this.scene.children);
 
     // MapGeneratorから道(this.roadInfoList)とビル(this.buildingInfoList)の情報を取得
     this.extractMapInfo();

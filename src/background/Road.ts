@@ -16,6 +16,7 @@ export type RoadSettings = BaseRoadSettings & {
 class BaseRoad extends THREE.Mesh {
   constructor({ width, length, color, opacity }: BaseRoadSettings) {
     const geometryBaseRoad = new THREE.PlaneGeometry(width, length);
+    // TODO 再利用
     const materialBaseRoad = new THREE.MeshLambertMaterial({
       color: color,
       transparent: true,
@@ -33,7 +34,7 @@ export class Road extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    color = 0xb0c4de,
     opacity = 1,
   }: RoadSettings) {
     super();
@@ -55,9 +56,8 @@ export class RoadWithCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    color = 0xb0c4de,
     highlightColor = 0xffffff,
-    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -66,14 +66,14 @@ export class RoadWithCenterLine extends THREE.Group {
     );
 
     const geometryMainRoad = new THREE.PlaneGeometry(width, length);
+    // TODO 再利用
     const materialMainRoad = new THREE.MeshLambertMaterial({
       color: color,
-      transparent: true,
-      opacity: opacity,
     });
     const road = new THREE.Mesh(geometryMainRoad, materialMainRoad);
 
     const geometryCenterLine = new THREE.PlaneGeometry(width / 8, length);
+    // TODO 再利用
     const materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
@@ -95,10 +95,9 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     width,
     length,
     radian = 0,
-    // color = 0xe6e6fa,
+    // color = 0xb0c4de,
     color = 0xb0c4de,
     highlightColor = 0xffffff,
-    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -108,9 +107,10 @@ export class RoadWithDashedCenterLine extends THREE.Group {
 
     const dashLength = 10;
 
-    const road = new BaseRoad({ width, length, color, opacity });
+    const road = new BaseRoad({ width, length, color });
 
     const geometryCenterLine = new THREE.PlaneGeometry(width / 8, dashLength);
+    // TODO 再利用
     const materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
