@@ -1,21 +1,3 @@
-import { Nightlife } from "@mui/icons-material";
-
-// export const colors = {
-//   night_fade: [0xa18cd1, 0xfbc2eb],
-//   rainy_ashville: [0xfbc2eb, 0xa6c1ee],
-//   tempting_azure: [0x84fab0, 0x8fd3f4],
-//   amy_crisp: [0xa6c0fe, 0xf68084],
-//   mprphius_den: [0x330867, 0x30cfd0],
-//   plum_plate: [0x764ba2, 0x667eea],
-//   sharpeye_eagle: [0x9890e3, 0xb1f4cf],
-// };
-
-const colors: { [name: string]: [string, string] } = {
-  night_fade: ["#a18cd1", "#fbc2eb"],
-  rainy_ashville: ["#fbc2eb", "#a6c1ee"],
-  amy_crisp: ["#a6c0fe", "#f68084"],
-};
-
 export const extColors: { [name: string]: [string, string] } = {
   ".ts": ["#a1c4fd", "#c2e9fb"],
   ".tsx": ["#a1c4fd", "#c2e9fb"],
@@ -51,5 +33,5 @@ export const extColors: { [name: string]: [string, string] } = {
   ".xlsx": ["#80d0c7", "#abecd6"],
   ".pptx": ["#ff8177", "#fda085"],
   ".java": ["#209cff", "#68e0cf"],
-  "": ["#a6c0fe", "#f68084"],
+  others: ["#a6c0fe", "#f68084"],
 };

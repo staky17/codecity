@@ -3,7 +3,12 @@ import * as THREE from "three";
 import React, { useEffect, useRef, useState } from "react";
 import { createBuildingFrom4Coordinate } from "./Building";
 import { Vector2d, MapGenerator, District, Building } from "./mapGenerator";
-import { createRoadFromStartToEnd } from "./Road";
+import {
+  createRoadFromStartToEnd,
+  Road,
+  RoadWithCenterLine,
+  RoadWithDashedCenterLine,
+} from "./Road";
 
 // 親からmapGeneratorを受け取るための型定義
 type Props = {
@@ -54,8 +59,8 @@ class MapRenderer {
   scale: number;
   roadInfoList: RoadInfo[];
   buildingInfoList: BuildingInfo[];
-  buildingList: THREE.Group[];
-  roadList: THREE.Group[];
+  buildingList: THREE.Mesh<THREE.BufferGeometry, THREE.Material[]>[];
+  roadList: Array<Road | RoadWithCenterLine | RoadWithDashedCenterLine>;
   mapGenerator: MapGenerator;
 
   constructor(canvas: HTMLCanvasElement, mapGenerator: MapGenerator) {
@@ -65,7 +70,6 @@ class MapRenderer {
     this.scene = new THREE.Scene();
     // this.scene.add(new THREE.AxesHelper(1000));
 
-    // TODO 光と格闘中 (綺麗な陰影がつかない。...)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
     const pointlight = new THREE.PointLight(0xffffff, 1, 50, 1.0);
     pointlight.position.set(0, 70, -500);
@@ -89,7 +93,7 @@ class MapRenderer {
       75,
       window.innerWidth / window.innerHeight,
       100,
-      10000
+      2000
     );
     // cameraの初期設定
     this.camera.position.set(1000, 1000, 1000);
@@ -154,35 +158,41 @@ class MapRenderer {
     }
   }
 
-  // TODO 後でグラデーションを取り込む時に変更が起こる。
   // シーンに道とビルの追加
   private updateSceneObject() {
     // Sceneのbuildingがある場合に削除;
     if (this.buildingList.length) {
       this.scene.remove(...this.buildingList);
       this.buildingList.map((b) => {
-        b.clear();
+        b.geometry.dispose();
+        b.material.forEach((m) => m.dispose());
       });
     }
     //　Sceneのroadがある時に削除
     if (this.roadList.length) {
       this.scene.remove(...this.roadList);
-      this.buildingList.map((road) => {
-        road.clear();
+      this.roadList.map((road) => {
+        road.dispose();
       });
     }
 
     // buildingをリストに追加
-    this.buildingList = this.buildingInfoList.map((buildingInfo) =>
-      createBuildingFrom4Coordinate(
-        buildingInfo.coords.map((c) => c.times(this.scale)),
-        // componentInfo.height || 100,
-        buildingInfo.fileInfo?.lineCount || 100,
-        "Gradation",
+    this.buildingList = this.buildingInfoList.map((buildingInfo) => {
+      const coords = buildingInfo.coords.map((c) => c.times(this.scale));
+      // 画像などの時はライン数０
+      const lines = buildingInfo.fileInfo?.lineCount || 0;
+      // 最低25の高さを与える（ペシャンコ対策)
+      let height = Math.max(lines, 25);
+      // 500を超えると増分にログをつける。
+      if (height > 500) height = 500 + Math.log(height - 500);
+
+      return createBuildingFrom4Coordinate(
+        coords,
+        height,
         buildingInfo.fileInfo.path,
         buildingInfo.fileInfo.ext
-      )
-    );
+      );
+    });
 
     // roadを追加
     this.roadList = this.roadInfoList.map((roadInfo) =>
@@ -230,15 +240,12 @@ class MapRenderer {
     // 描画空間の高さの最大値を取得
     const ymax = Math.max(...ycoords);
 
-    // TODO 後でカメラ位置の調整をする。
-    this.camera.position.set(xmin - 200, ymax + 200, zmin - 200);
+    // カメラ位置の調整
+    this.camera.position.set(xmin - 200, ymax + 25, zmin - 200);
     this.camera.lookAt(new THREE.Vector3(xmax, 0, zmax));
   } // cameraPositioning End
 
   render(): void {
-    console.log("render");
-    console.log(this.scene.children);
-
     // MapGeneratorから道(this.roadInfoList)とビル(this.buildingInfoList)の情報を取得
     this.extractMapInfo();
     // this.sceneに道とビルの追加
