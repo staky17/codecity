@@ -1,25 +1,24 @@
+import { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 
-type BaseRoadSettings = {
+export type BaseRoadSettings = {
   width: number;
   length: number;
   color?: number;
-  opacity?: number;
 };
 
-type RoadSettings = BaseRoadSettings & {
+export type RoadSettings = BaseRoadSettings & {
   radian?: number;
   highlightColor?: number;
 };
 
 // No rotate Plane
-class BaseRoad extends THREE.Mesh {
-  constructor({ width, length, color, opacity }: BaseRoadSettings) {
+class BaseRoad extends THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
+  constructor({ width, length, color }: BaseRoadSettings) {
     const geometryBaseRoad = new THREE.PlaneGeometry(width, length);
     const materialBaseRoad = new THREE.MeshLambertMaterial({
       color: color,
       transparent: true,
-      opacity: opacity,
     });
     super(geometryBaseRoad, materialBaseRoad);
   }
@@ -27,35 +26,37 @@ class BaseRoad extends THREE.Mesh {
 
 // Rotation
 export class Road extends THREE.Group {
-  constructor({
-    width,
-    length,
-    radian = 0,
-    color = 0x808080,
-    opacity = 1,
-  }: RoadSettings) {
+  private road: BaseRoad;
+
+  constructor({ width, length, radian = 0, color = 0xb0c4de }: RoadSettings) {
     super();
     console.assert(
       -Math.PI * 2 < radian && radian < Math.PI * 2,
       "Use radian!"
     );
 
-    const road = new BaseRoad({ width, length: length, color, opacity });
+    this.road = new BaseRoad({ width, length: length, color });
 
-    this.add(road);
+    this.add(this.road);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+  }
+  dispose() {
+    this.road.material.dispose();
+    this.road.geometry.dispose();
   }
 }
 
 export class RoadWithCenterLine extends THREE.Group {
+  private road: BaseRoad;
+  private geometryCenterLine: THREE.BufferGeometry;
+  private materialCenterLine: THREE.Material;
   constructor({
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    color = 0xb0c4de,
     highlightColor = 0xffffff,
-    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -63,36 +64,42 @@ export class RoadWithCenterLine extends THREE.Group {
       "Use radian!"
     );
 
-    const geometryMainRoad = new THREE.PlaneGeometry(width, length);
-    const materialMainRoad = new THREE.MeshLambertMaterial({
-      color: color,
-      transparent: true,
-      opacity: opacity,
-    });
-    const road = new THREE.Mesh(geometryMainRoad, materialMainRoad);
+    this.road = this.road = new BaseRoad({ width, length, color });
 
-    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, length);
-    const materialCenterLine = new THREE.MeshLambertMaterial({
+    this.geometryCenterLine = new THREE.PlaneGeometry(width / 8, length);
+    this.materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
 
-    const centerline = new THREE.Mesh(geometryCenterLine, materialCenterLine);
+    const centerline = new THREE.Mesh(
+      this.geometryCenterLine,
+      this.materialCenterLine
+    );
     centerline.position.set(0, 0, 0.1);
 
-    this.add(road, centerline);
+    this.add(this.road, centerline);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+  }
+  dispose() {
+    this.geometryCenterLine.dispose();
+    this.materialCenterLine.dispose();
+    this.road.material.dispose();
+    this.road.geometry.dispose();
   }
 }
 
 export class RoadWithDashedCenterLine extends THREE.Group {
+  public road: BaseRoad;
+  public geometryCenterLine: THREE.BufferGeometry;
+  public materialCenterLine: THREE.Material;
   constructor({
     width,
     length,
     radian = 0,
-    color = 0x808080,
+    // color = 0xb0c4de,
+    color = 0xb0c4de,
     highlightColor = 0xffffff,
-    opacity = 1,
   }: RoadSettings) {
     super();
     console.assert(
@@ -102,10 +109,10 @@ export class RoadWithDashedCenterLine extends THREE.Group {
 
     const dashLength = 10;
 
-    const road = new BaseRoad({ width, length, color, opacity });
+    this.road = new BaseRoad({ width, length, color });
 
-    const geometryCenterLine = new THREE.PlaneGeometry(width / 8, dashLength);
-    const materialCenterLine = new THREE.MeshLambertMaterial({
+    this.geometryCenterLine = new THREE.PlaneGeometry(width / 8, dashLength);
+    this.materialCenterLine = new THREE.MeshLambertMaterial({
       color: highlightColor,
     });
 
@@ -115,8 +122,8 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     for (let i = 0; i < Math.floor(length / dashLength) - 1; i++) {
       if (i % 2 === 0) {
         const centerline = new THREE.Mesh(
-          geometryCenterLine,
-          materialCenterLine
+          this.geometryCenterLine,
+          this.materialCenterLine
         );
         centerline.position.set(0, dashLength * i + dashLength, 0);
         centerlineDashs.push(centerline);
@@ -127,9 +134,15 @@ export class RoadWithDashedCenterLine extends THREE.Group {
     dashGroup.add(...centerlineDashs);
     dashGroup.position.set(0, -length / 2, 0.1);
 
-    this.add(road, dashGroup);
+    this.add(this.road, dashGroup);
     this.rotation.x = -Math.PI / 2; // Don't Change
     this.rotation.z = radian;
+  }
+  dispose() {
+    this.geometryCenterLine.dispose();
+    this.materialCenterLine.dispose();
+    this.road.material.dispose();
+    this.road.geometry.dispose();
   }
 }
 
@@ -155,10 +168,12 @@ export function createRoadFromStartToEnd(
   lineType: "NoLine" | "CenterLine" | "DashedCenterLine"
   // priority が追加されるかも。
 ) {
-  const length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  let length = Math.sqrt((end.x - start.x) ** 2 + (end.z - start.z) ** 2);
+  // 道を少し伸ばして切れ目を消す。
+  length += width * 0.8;
   const rad = Math.atan2(end.x - start.x, end.z - start.z);
 
-  let road: THREE.Group;
+  let road: Road | RoadWithCenterLine | RoadWithDashedCenterLine;
 
   switch (lineType) {
     case "NoLine":

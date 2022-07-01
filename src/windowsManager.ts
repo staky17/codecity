@@ -36,6 +36,8 @@ class WindowsManager {
 
       case "console":
         this.windows.console = new BrowserWindow({
+          width: 480,
+          height: 640,
           webPreferences: {
             preload: path.join(__dirname, "preload.js"),
           },
