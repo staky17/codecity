@@ -108,3 +108,5 @@ npm-*.log
 pnpm-*.log
 yarn-*.log
 .DS_Store
+
+packaged
