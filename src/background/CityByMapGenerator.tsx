@@ -105,7 +105,7 @@ class MapRenderer {
       75,
       window.innerWidth / window.innerHeight,
       100,
-      2000
+      10e6
     );
     // cameraの初期設定
     this.camera.position.set(1000, 1000, 1000);
