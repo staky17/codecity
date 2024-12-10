@@ -1,3 +1,4 @@
+import { zipObjectDeep } from "lodash";
 import * as THREE from "three";
 
 export type SignBoardType = {
@@ -15,7 +16,7 @@ export type SignBoardType = {
 export class SignBoard extends THREE.Group {
   constructor({
     filename,
-    signBoardColor = "#ffffff",
+    signBoardColor,
     width,
     height,
     depth,
@@ -27,6 +28,13 @@ export class SignBoard extends THREE.Group {
 
     // 背景のGeometry
     const geometry_background = new THREE.BoxGeometry(width, height, depth);
+    // 看板のstickのGeometry
+    const geometry_stick = new THREE.BoxGeometry(width / 8, YPosition, depth);
+    const material_stick = new THREE.MeshBasicMaterial({
+      color: signBoardColor,
+    });
+    const stickMesh = new THREE.Mesh(geometry_stick, material_stick);
+    stickMesh.position.set(XPosition, YPosition / 2, ZPosition);
 
     // canvasの縦横(小さすぎるとぼやける)
     const canvasWidth = 500;
@@ -41,7 +49,7 @@ export class SignBoard extends THREE.Group {
     );
     if (canvasForTexture !== undefined) {
       const canvasTexture = new THREE.CanvasTexture(canvasForTexture);
-      this.createSignBoard(geometry_background, canvasTexture, {
+      this.createSignBoard(geometry_background, stickMesh, canvasTexture, {
         x: XPosition,
         y: YPosition,
         z: ZPosition,
@@ -52,10 +60,11 @@ export class SignBoard extends THREE.Group {
   // boxGeometryのメッシュを作成
   private createSignBoard = (
     geometry_background: THREE.BoxGeometry,
+    stickMesh: THREE.Mesh,
     texture: THREE.CanvasTexture,
     position: { x: number; y: number; z: number }
   ) => {
-    const material = [
+    const signBoardMaterial = [
       new THREE.MeshBasicMaterial(),
       new THREE.MeshBasicMaterial(),
       new THREE.MeshBasicMaterial(),
@@ -64,9 +73,12 @@ export class SignBoard extends THREE.Group {
       new THREE.MeshBasicMaterial({ map: texture }),
     ];
 
-    const signBoardMesh = new THREE.Mesh(geometry_background, material);
+    const signBoardMesh = new THREE.Mesh(
+      geometry_background,
+      signBoardMaterial
+    );
     signBoardMesh.position.set(position.x, position.y, position.z);
-    this.add(signBoardMesh);
+    this.add(signBoardMesh, stickMesh);
   };
 }
 

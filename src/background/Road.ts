@@ -118,7 +118,8 @@ export class RoadWithDashedCenterLine extends THREE.Group {
 
     // lengthの半分
     //　 Dash長は固定値
-    const centerlineDashs = [];
+    const centerlineDashs: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] =
+      [];
     for (let i = 0; i < Math.floor(length / dashLength) - 1; i++) {
       if (i % 2 === 0) {
         const centerline = new THREE.Mesh(
